@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>記帳本</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%231c1a17'/%3E%3Crect%20x='16'%20y='12'%20width='32'%20height='40'%20rx='3'%20fill='%23faf8f3'/%3E%3Crect%20x='16'%20y='12'%20width='7'%20height='40'%20rx='3'%20fill='%23b4432f'/%3E%3Cline%20x1='28'%20y1='23'%20x2='42'%20y2='23'%20stroke='%23e3ddd0'%20stroke-width='2.5'%20stroke-linecap='round'/%3E%3Cline%20x1='28'%20y1='31'%20x2='42'%20y2='31'%20stroke='%23e3ddd0'%20stroke-width='2.5'%20stroke-linecap='round'/%3E%3Cline%20x1='28'%20y1='39'%20x2='36'%20y2='39'%20stroke='%23e3ddd0'%20stroke-width='2.5'%20stroke-linecap='round'/%3E%3Ccircle%20cx='44'%20cy='44'%20r='11'%20fill='%233a5a78'%20stroke='%23faf8f3'%20stroke-width='2.5'/%3E%3Ctext%20x='44'%20y='48.5'%20font-family='Georgia,serif'%20font-size='13'%20font-weight='700'%20fill='%23faf8f3'%20text-anchor='middle'%3E%24%3C/text%3E%3C/svg%3E">
 <style>
   :root {
     --ink: #1c1a17; --paper: #faf8f3; --line: #e3ddd0; --muted: #8a8175;
@@ -156,6 +157,33 @@
   .transfer-fields { display: none; }
   .toolbtn { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; cursor: pointer; font-size: 13px; color: var(--ink); }
   .toolbtn:hover { border-color: var(--ink); }
+
+  /* overview report */
+  .ov-hero { background: linear-gradient(135deg, #1c1a17, #2d2a25); color: var(--paper); border-radius: 12px; padding: 22px; margin-bottom: 16px; }
+  .ov-hero .greet { font-size: 15px; opacity: .85; margin-bottom: 6px; }
+  .ov-hero .msg { font-size: 16px; line-height: 1.7; }
+  .ov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .ov-cell { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+  .ov-cell .l { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .ov-cell .v { font-size: 20px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .ov-cell .v.pos { color: var(--income); } .ov-cell .v.neg { color: var(--expense); }
+  .ov-cell .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .ov-section-title { font-size: 13px; color: var(--muted); letter-spacing: 1px; margin: 20px 0 10px; }
+  .streak-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 6px 14px; font-size: 13px; }
+
+  /* recurring rules */
+  .rec-line { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .rec-line:last-of-type { border-bottom: none; }
+  .rec-line .rn { flex: 1; min-width: 140px; font-size: 14px; }
+  .rec-line .rsub { font-size: 12px; color: var(--muted); }
+  .rec-line button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; }
+  .rec-line button:hover { color: var(--expense); }
+  .rec-add { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .rec-add input, .rec-add select { padding: 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; }
+  .rec-add .full { grid-column: 1 / -1; }
+  .rec-add .addbtn { grid-column: 1 / -1; background: var(--ink); color: #fff; border: none; border-radius: 6px; padding: 9px; cursor: pointer; }
+  .rec-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .auto-tag { font-size: 10px; background: var(--accent); color: #fff; border-radius: 10px; padding: 1px 6px; margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -174,13 +202,26 @@
 
   <main id="app" style="display:none;">
     <div class="tabs">
-      <button data-tab="ledger" class="active">記帳</button>
+      <button data-tab="overview" class="active">總覽</button>
+      <button data-tab="ledger">記帳</button>
       <button data-tab="accounts">帳戶</button>
       <button data-tab="trend">趨勢</button>
       <button data-tab="settings">設定</button>
     </div>
 
-    <section class="panel active" id="panel-ledger">
+    <section class="panel active" id="panel-overview">
+      <div class="ov-hero">
+        <div class="greet" id="ovGreet">午安</div>
+        <div class="msg" id="ovMsg"></div>
+      </div>
+      <div class="ov-grid" id="ovGrid"></div>
+      <div class="ov-section-title">記帳習慣</div>
+      <div id="ovStreak"></div>
+      <div class="ov-section-title">帳戶概況</div>
+      <div id="ovAccounts"></div>
+    </section>
+
+    <section class="panel" id="panel-ledger">
       <div class="total-card">
         <span class="tlabel" id="totalLabel">總資產（折台幣）</span>
         <span class="tval" id="totalVal">—</span>
@@ -324,14 +365,37 @@
         <div class="newacct">
           <input type="text" id="newAcctName" placeholder="帳戶名稱（如：荷蘭 ABN 帳戶）">
           <select id="newAcctCur"><option value="TWD">TWD 台幣</option><option value="EUR">EUR 歐元</option></select>
+          <input type="number" id="newAcctOpen" placeholder="初始餘額（可留空）" step="0.01" style="flex:2;min-width:120px;padding:8px;border:1px solid var(--line);border-radius:6px;font-size:14px;">
           <button id="addAcct">新增</button>
         </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;">初始餘額 = 建立帳戶時裡面本來就有的錢，不會算進任何一個月的收支。</p>
       </div>
 
       <div class="set-block">
         <h3>資料備份</h3>
         <button class="toolbtn" id="exportCsv">匯出全部記錄為 CSV</button>
-        <p style="font-size:12px;color:var(--muted);margin-top:8px;">下載成 Excel 可開的檔案，留存備份用。</p>
+        <div style="margin-top:12px;">
+          <label class="toolbtn" style="display:inline-block;">
+            匯入 CSV 還原
+            <input type="file" id="importFile" accept=".csv" style="display:none;">
+          </label>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;">匯出下載成 Excel 可開的檔案。匯入請用本 app 匯出的 CSV，會把裡面的記錄加進來（不會覆蓋現有資料）。</p>
+      </div>
+
+      <div class="set-block">
+        <h3>固定支出／分期（每月自動產生）</h3>
+        <div id="recList"></div>
+        <div class="rec-add">
+          <input type="text" id="recName" class="full" placeholder="名稱（如：房租、手機分期）">
+          <select id="recAccount"></select>
+          <select id="recCategory"></select>
+          <input type="number" id="recAmount" placeholder="每月金額" step="0.01" min="0">
+          <input type="number" id="recDay" placeholder="每月幾號(1-28)" min="1" max="28">
+          <input type="number" id="recMonths" class="full" placeholder="分期期數（房租等長期填 0 = 不限）" min="0">
+          <button class="addbtn" id="addRec">新增固定支出</button>
+        </div>
+        <p class="rec-hint">每次打開 app 會自動補上這個月該產生、還沒記過的固定支出，並標上「自動」。你仍可編輯或刪除那些記錄。分期填期數，滿了就停。</p>
       </div>
 
       <div class="set-block">
@@ -419,10 +483,12 @@ function startApp() {
   let uid = null;
   let unsubEntries = null, unsubAccounts = null, unsubSettings = null;
   let entries = [], accounts = [];
-  let settings = { rate: 36, budget: 0, categories: DEFAULT_CATS, favorites: [] };
+  let settings = { rate: 36, budget: 0, categories: DEFAULT_CATS, favorites: [], recurring: [] };
   let viewDate = new Date(), curType = "expense", balView = "twd";
   let filter = { search: "", type: "", account: "" };
   let editingId = null;
+  const loaded = { settings: false, accounts: false, entries: false };
+  let recurDone = false;
 
   const $ = id => document.getElementById(id);
   const rate = () => Number(settings.rate) || 36;
@@ -445,6 +511,7 @@ function startApp() {
       subscribeAll();
     } else {
       uid = null;
+      loaded.settings = loaded.accounts = loaded.entries = false; recurDone = false;
       [unsubEntries, unsubAccounts, unsubSettings].forEach(u => u && u());
       $("login").style.display = "block";
       $("app").style.display = "none";
@@ -459,23 +526,35 @@ function startApp() {
         rate: d.rate ?? 36,
         budget: d.budget ?? 0,
         categories: d.categories ?? DEFAULT_CATS,
-        favorites: d.favorites ?? []
+        favorites: d.favorites ?? [],
+        recurring: d.recurring ?? []
       };
       $("rateInput").value = settings.rate;
       $("budgetInput").value = settings.budget;
       renderAll();
+      loaded.settings = true; maybeRunRecurring();
     });
     const qa = query(collection(db, "accounts"), where("uid", "==", uid));
     unsubAccounts = onSnapshot(qa, snap => {
       accounts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       accounts.sort((a, b) => (a.created?.seconds || 0) - (b.created?.seconds || 0));
       renderAll();
+      loaded.accounts = true; maybeRunRecurring();
     }, err => alert("帳戶讀取失敗：" + err.message));
     const qe = query(collection(db, "entries"), where("uid", "==", uid), orderBy("date", "desc"));
     unsubEntries = onSnapshot(qe, snap => {
       entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderAll();
+      loaded.entries = true; maybeRunRecurring();
     }, err => alert("讀取失敗：" + err.message));
+  }
+
+  function maybeRunRecurring() {
+    if (recurDone) return;
+    if (loaded.settings && loaded.accounts && loaded.entries) {
+      recurDone = true;
+      runRecurring();
+    }
   }
 
   async function saveSettings(patch) {
@@ -529,7 +608,7 @@ function startApp() {
 
   function fillAccountSelects() {
     const opts = accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}（${a.currency}）</option>`).join("");
-    ["account", "fromAcct", "toAcct", "eAccount", "eFrom", "eTo"].forEach(id => {
+    ["account", "fromAcct", "toAcct", "eAccount", "eFrom", "eTo", "recAccount"].forEach(id => {
       const el = $(id); if (!el) return; const prev = el.value;
       el.innerHTML = opts;
       if (prev && accounts.some(a => a.id === prev)) el.value = prev;
@@ -550,6 +629,7 @@ function startApp() {
 
   $("date").valueAsDate = new Date();
   setType("expense");
+  fillCategories($("recCategory"), "expense");
 
   // filters
   $("fSearch").oninput = e => { filter.search = e.target.value.trim(); renderList(); };
@@ -694,10 +774,11 @@ function startApp() {
   $("addAcct").onclick = async () => {
     const name = $("newAcctName").value.trim();
     const currency = $("newAcctCur").value;
+    const opening = Number($("newAcctOpen").value) || 0;
     if (!name) { alert("請輸入帳戶名稱"); return; }
     try {
-      await addDoc(collection(db, "accounts"), { uid, name, currency, created: serverTimestamp() });
-      $("newAcctName").value = "";
+      await addDoc(collection(db, "accounts"), { uid, name, currency, opening, created: serverTimestamp() });
+      $("newAcctName").value = ""; $("newAcctOpen").value = "";
     } catch (err) { alert("新增失敗：" + err.message); }
   };
   async function removeAccount(id) {
@@ -719,6 +800,17 @@ function startApp() {
     catch (err) { alert("改名失敗：" + err.message); }
   }
   window.__renameAccount = renameAccount;
+  async function editOpening(id) {
+    const a = acctById(id); if (!a) return;
+    const cur = a.opening != null ? a.opening : 0;
+    const v = prompt(`「${a.name}」的初始餘額（${a.currency}）：`, cur);
+    if (v === null) return;
+    const n = Number(v);
+    if (isNaN(n)) { alert("請輸入數字"); return; }
+    try { await updateDoc(doc(db, "accounts", id), { opening: n }); }
+    catch (err) { alert("儲存失敗：" + err.message); }
+  }
+  window.__editOpening = editOpening;
 
   // favorites
   $("saveFavBtn").onclick = () => {
@@ -774,7 +866,8 @@ function startApp() {
   };
 
   function accountBalance(acctId) {
-    let bal = 0;
+    const acct = acctById(acctId);
+    let bal = acct && acct.opening ? Number(acct.opening) : 0;
     for (const e of entries) {
       if (e.type === "income" && e.accountId === acctId) bal += e.amount;
       else if (e.type === "expense" && e.accountId === acctId) bal -= e.amount;
@@ -800,6 +893,8 @@ function startApp() {
     renderCatChips();
     renderFavList();
     renderTrend();
+    renderOverview();
+    renderRecList();
   }
 
   function renderFavs() {
@@ -976,8 +1071,9 @@ function startApp() {
     if (!accounts.length) { box.innerHTML = `<p style="font-size:13px;color:var(--muted)">還沒有帳戶。</p>`; return; }
     box.innerHTML = accounts.map(a => `
       <div class="acct-line">
-        <span class="n">${escapeHtml(a.name)}</span>
+        <span class="n">${escapeHtml(a.name)}<span class="rsub"> · 初始 ${fmtMoney(a.opening||0, a.currency)}</span></span>
         <span class="c">${a.currency}</span>
+        <button title="初始餘額" onclick="__editOpening('${a.id}')">＄</button>
         <button title="改名" onclick="__renameAccount('${a.id}')">✎</button>
         <button title="刪除" onclick="__removeAccount('${a.id}')">×</button>
       </div>`).join("");
@@ -1039,6 +1135,230 @@ function startApp() {
       ${line("net", "#3a5a78")}
       ${xLabels}
     </svg>`;
+  }
+
+  // ---- recurring rules ----
+  $("addRec").onclick = () => {
+    const name = $("recName").value.trim();
+    const accountId = $("recAccount").value;
+    const category = $("recCategory").value;
+    const amount = Number($("recAmount").value);
+    const day = Math.min(28, Math.max(1, Number($("recDay").value) || 1));
+    const months = Number($("recMonths").value) || 0;
+    if (!name) { alert("請填名稱"); return; }
+    if (!accountId) { alert("請先建立帳戶"); return; }
+    if (!(amount > 0)) { alert("金額要大於 0"); return; }
+    const rule = {
+      id: Date.now().toString(), name, accountId, category, amount, day,
+      months, startMonth: new Date().toISOString().slice(0, 7)
+    };
+    saveSettings({ recurring: [...(settings.recurring || []), rule] });
+    $("recName").value = ""; $("recAmount").value = ""; $("recDay").value = ""; $("recMonths").value = "";
+  };
+  function removeRec(id) {
+    if (!confirm("刪除這條固定支出？已產生的記錄不會被刪。")) return;
+    saveSettings({ recurring: (settings.recurring || []).filter(r => r.id !== id) });
+  }
+  window.__removeRec = removeRec;
+
+  function renderRecList() {
+    const box = $("recList");
+    const recs = settings.recurring || [];
+    if (!recs.length) { box.innerHTML = `<p style="font-size:13px;color:var(--muted)">還沒有固定支出。</p>`; return; }
+    box.innerHTML = recs.map(r => {
+      const a = acctById(r.accountId);
+      const cur = a ? a.currency : "";
+      const term = r.months ? `分期 ${r.months} 期` : "長期";
+      return `<div class="rec-line">
+        <span class="rn">${escapeHtml(r.name)}<div class="rsub">每月 ${r.day} 號 · ${fmtMoney(r.amount, cur)} · ${escapeHtml(r.category)} · ${a?escapeHtml(a.name):"?"} · ${term}</div></span>
+        <button onclick="__removeRec('${r.id}')">×</button>
+      </div>`;
+    }).join("");
+  }
+
+  // auto-generate recurring entries for months from rule start up to current month
+  let recurRunning = false;
+  async function runRecurring() {
+    if (recurRunning) return;
+    const recs = settings.recurring || [];
+    if (!recs.length) return;
+    recurRunning = true;
+    try {
+      const now = new Date();
+      const curYM = now.toISOString().slice(0, 7);
+      for (const r of recs) {
+        // iterate months from startMonth to current
+        let [sy, sm] = (r.startMonth || curYM).split("-").map(Number);
+        let count = 0;
+        while (true) {
+          const ym = `${sy}-${String(sm).padStart(2, "0")}`;
+          if (ym > curYM) break;
+          if (r.months && count >= r.months) break;
+          const dateStr = `${ym}-${String(r.day).padStart(2, "0")}`;
+          // has this rule already produced an entry this month?
+          const exists = entries.some(e => e.recurId === r.id && (e.date || "").startsWith(ym));
+          if (!exists && r.accountId && acctById(r.accountId)) {
+            await addDoc(collection(db, "entries"), {
+              uid, type: "expense", amount: r.amount, accountId: r.accountId,
+              category: r.category, note: r.name, date: dateStr,
+              recurId: r.id, auto: true, created: serverTimestamp()
+            });
+          }
+          count++;
+          sm++; if (sm > 12) { sm = 1; sy++; }
+          if (count > 60) break; // safety
+        }
+      }
+    } catch (err) {
+      console.error("recurring error", err);
+    } finally {
+      recurRunning = false;
+    }
+  }
+
+  // ---- import CSV ----
+  $("importFile").onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const text = String(reader.result).replace(/^\uFEFF/, "");
+        const rows = parseCsv(text);
+        if (!rows.length) { alert("檔案是空的"); return; }
+        const header = rows[0];
+        const idx = h => header.indexOf(h);
+        const iDate = idx("日期"), iType = idx("類型"), iAcct = idx("帳戶"),
+              iCat = idx("分類"), iAmt = idx("金額"), iNote = idx("備註"),
+              iToAcct = idx("轉入帳戶"), iToAmt = idx("轉入金額");
+        if (iDate < 0 || iType < 0) { alert("這不像本 app 匯出的 CSV（缺少日期/類型欄）。"); return; }
+        const nameToId = {};
+        accounts.forEach(a => nameToId[a.name] = a.id);
+        let ok = 0, skip = 0;
+        for (let i = 1; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r || !r[iDate]) continue;
+          const type = r[iType];
+          try {
+            if (type === "轉帳") {
+              const from = nameToId[r[iAcct]], to = nameToId[r[iToAcct]];
+              if (!from || !to) { skip++; continue; }
+              await addDoc(collection(db, "entries"), {
+                uid, type: "transfer", date: r[iDate], fromAcct: from, toAcct: to,
+                fromAmt: Number(r[iAmt]) || 0, toAmt: Number(r[iToAmt]) || 0,
+                note: r[iNote] || "", created: serverTimestamp()
+              });
+              ok++;
+            } else {
+              const acctId = nameToId[r[iAcct]];
+              if (!acctId) { skip++; continue; }
+              await addDoc(collection(db, "entries"), {
+                uid, type: type === "收入" ? "income" : "expense",
+                amount: Number(r[iAmt]) || 0, accountId: acctId,
+                category: r[iCat] || "其他", note: r[iNote] || "",
+                date: r[iDate], created: serverTimestamp()
+              });
+              ok++;
+            }
+          } catch (_) { skip++; }
+        }
+        alert(`匯入完成：成功 ${ok} 筆${skip ? `，略過 ${skip} 筆（找不到對應帳戶名）` : ""}。`);
+      } catch (err) { alert("匯入失敗：" + err.message); }
+      finally { e.target.value = ""; }
+    };
+    reader.readAsText(file);
+  };
+
+  function parseCsv(text) {
+    const rows = []; let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i+1] === '"') { cell += '"'; i++; } else q = false; }
+        else cell += c;
+      } else {
+        if (c === '"') q = true;
+        else if (c === ",") { row.push(cell); cell = ""; }
+        else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+        else if (c === "\r") {}
+        else cell += c;
+      }
+    }
+    if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  }
+
+  // ---- overview report with encouragement ----
+  function renderOverview() {
+    const hr = new Date().getHours();
+    const name = (auth.currentUser && auth.currentUser.displayName) ? auth.currentUser.displayName.split(" ")[0] : "";
+    const greet = hr < 5 ? "夜深了" : hr < 11 ? "早安" : hr < 14 ? "午安" : hr < 18 ? "午後好" : "晚安";
+    $("ovGreet").textContent = name ? `${greet}，${name}` : greet;
+
+    // totals
+    let totalTWD = 0;
+    accounts.forEach(a => totalTWD += toTWD(accountBalance(a.id), a.currency));
+
+    // this month vs last month (expense, TWD)
+    const now = new Date();
+    const thisYM = now.toISOString().slice(0, 7);
+    const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastYM = lm.toISOString().slice(0, 7);
+    const sumMonth = (ym, type) => {
+      let s = 0;
+      entries.filter(e => (e.date || "").startsWith(ym) && e.type === type).forEach(e => {
+        const a = acctById(e.accountId); s += toTWD(e.amount, a ? a.currency : "TWD");
+      });
+      return s;
+    };
+    const expThis = sumMonth(thisYM, "expense"), expLast = sumMonth(lastYM, "expense");
+    const incThis = sumMonth(thisYM, "income");
+    const netThis = incThis - expThis;
+    const diff = expThis - expLast;
+
+    // streak: consecutive days up to today with at least one entry
+    const daySet = new Set(entries.map(e => e.date));
+    let streak = 0;
+    let d = new Date();
+    for (let i = 0; i < 400; i++) {
+      const ds = d.toISOString().slice(0, 10);
+      if (daySet.has(ds)) { streak++; d.setDate(d.getDate() - 1); }
+      else if (i === 0) { d.setDate(d.getDate() - 1); } // allow today not yet recorded
+      else break;
+    }
+    const totalDays = daySet.size;
+
+    $("ovGrid").innerHTML = `
+      <div class="ov-cell"><div class="l">總資產（折台幣）</div><div class="v">${fmtMoney(totalTWD, "TWD")}</div></div>
+      <div class="ov-cell"><div class="l">本月結餘</div><div class="v ${netThis>=0?"pos":"neg"}">${fmtMoney(netThis, "TWD")}</div><div class="sub">收入 ${fmtMoney(incThis,"TWD")} · 支出 ${fmtMoney(expThis,"TWD")}</div></div>
+      <div class="ov-cell"><div class="l">本月支出</div><div class="v">${fmtMoney(expThis, "TWD")}</div><div class="sub">${expLast? (diff<=0? "比上月少 "+fmtMoney(-diff,"TWD") : "比上月多 "+fmtMoney(diff,"TWD")) : "上月無資料"}</div></div>
+      <div class="ov-cell"><div class="l">記帳天數</div><div class="v">${totalDays}</div><div class="sub">連續 ${streak} 天</div></div>`;
+
+    $("ovStreak").innerHTML = `<span class="streak-badge">🔥 連續記帳 ${streak} 天，總共記了 ${totalDays} 天</span>`;
+
+    // accounts snapshot
+    $("ovAccounts").innerHTML = accounts.length
+      ? accounts.map(a => {
+          const bal = accountBalance(a.id);
+          return `<div class="acct-card"><span><span class="aname">${escapeHtml(a.name)}</span><span class="acur">${a.currency}</span></span><span class="abal ${bal<0?"neg":""}">${fmtMoney(bal, a.currency)}</span></div>`;
+        }).join("")
+      : `<div class="empty">還沒有帳戶，去「設定」新增。</div>`;
+
+    // warm message by situation
+    $("ovMsg").textContent = encouragement({ netThis, diff, expLast, streak, totalDays, incThis, expThis });
+  }
+
+  function encouragement(x) {
+    const msgs = [];
+    if (x.totalDays === 0) return "還沒有任何記錄，先從今天的一杯咖啡、一趟車錢開始吧。記帳這件事，起頭最難，你已經打開它了。";
+    if (x.streak >= 7) msgs.push(`連續記帳 ${x.streak} 天了，這份細心在異鄉特別難得，繼續保持。`);
+    else if (x.streak >= 3) msgs.push(`已經連著記了 ${x.streak} 天，習慣正在長出來，別小看這股慣性。`);
+    if (x.expLast > 0 && x.diff < 0) msgs.push(`這個月比上個月省下了 ${fmtMoney(-x.diff, "TWD")}，你把錢花在更要緊的地方了。`);
+    else if (x.expLast > 0 && x.diff > 0) msgs.push("這個月花得比上個月多一些，不必焦慮，看清楚錢的去向，本身就是一種掌控。");
+    if (x.netThis > 0) msgs.push(`本月還有結餘 ${fmtMoney(x.netThis, "TWD")}，一點一點累積，回家時會是一筆踏實的底氣。`);
+    else if (x.netThis < 0) msgs.push("這個月支出多過收入，有時是必要的投入。記下來，下個月會更清楚該怎麼調整。");
+    if (!msgs.length) msgs.push("穩穩地記，穩穩地過。你在照顧自己的生活，這件事值得肯定。");
+    return msgs.join("　");
   }
 
   function escapeHtml(s) {
