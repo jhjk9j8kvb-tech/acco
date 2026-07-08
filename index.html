@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>記帳本</title>
+<style>
+  :root {
+    --ink: #1c1a17;
+    --paper: #faf8f3;
+    --line: #e3ddd0;
+    --muted: #8a8175;
+    --income: #2f7d5b;
+    --expense: #b4432f;
+    --accent: #3a5a78;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.6;
+    padding: 0 16px 60px;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+
+  header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 24px 0 16px; border-bottom: 2px solid var(--ink); margin-bottom: 20px;
+  }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: 2px; }
+  #userbar { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+  #userbar button {
+    background: none; border: 1px solid var(--line); border-radius: 4px;
+    padding: 4px 10px; cursor: pointer; font-size: 12px; color: var(--ink);
+  }
+  #userbar button:hover { border-color: var(--ink); }
+
+  /* login screen */
+  #login { text-align: center; padding: 80px 0; }
+  #login p { color: var(--muted); margin-bottom: 24px; }
+  #login button {
+    background: var(--ink); color: var(--paper); border: none; border-radius: 6px;
+    padding: 12px 28px; font-size: 15px; cursor: pointer;
+  }
+
+  /* summary */
+  .summary {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 8px;
+  }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+  .stat .label { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .stat .num { font-size: 22px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat.in .num { color: var(--income); }
+  .stat.out .num { color: var(--expense); }
+
+  .monthnav { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 18px 0; }
+  .monthnav button { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--muted); padding: 4px 8px; }
+  .monthnav button:hover { color: var(--ink); }
+  .monthnav span { font-size: 15px; font-weight: 600; letter-spacing: 1px; min-width: 110px; text-align: center; }
+
+  /* form */
+  .form {
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    padding: 16px; margin-bottom: 22px;
+  }
+  .form-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .toggle { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .toggle button {
+    border: none; background: none; padding: 8px 18px; cursor: pointer; font-size: 14px; color: var(--muted);
+  }
+  .toggle button.active { color: #fff; }
+  .toggle button.active.exp { background: var(--expense); }
+  .toggle button.active.inc { background: var(--income); }
+  .form input, .form select {
+    padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px;
+    font-size: 14px; font-family: inherit; background: var(--paper);
+  }
+  .form input[type="number"] { flex: 1; min-width: 100px; }
+  .form input[type="text"] { flex: 2; min-width: 140px; }
+  .form input[type="date"] { flex: 1; }
+  .form select { flex: 1; }
+  .form .add {
+    background: var(--accent); color: #fff; border: none; border-radius: 6px;
+    padding: 10px; font-size: 15px; cursor: pointer; width: 100%;
+  }
+  .form .add:hover { opacity: .9; }
+
+  /* list */
+  .day-group { margin-bottom: 4px; }
+  .day-head { font-size: 12px; color: var(--muted); padding: 12px 4px 6px; letter-spacing: 1px; border-bottom: 1px solid var(--line); }
+  .item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--line);
+  }
+  .item .cat {
+    font-size: 12px; background: var(--paper); border: 1px solid var(--line);
+    border-radius: 20px; padding: 3px 10px; color: var(--muted); white-space: nowrap;
+  }
+  .item .note { flex: 1; font-size: 14px; }
+  .item .amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .item .amt.in { color: var(--income); }
+  .item .amt.out { color: var(--expense); }
+  .item .del { background: none; border: none; color: var(--line); cursor: pointer; font-size: 16px; padding: 0 4px; }
+  .item:hover .del { color: var(--expense); }
+  .empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 14px; }
+
+  /* chart */
+  .chart { margin-top: 26px; }
+  .chart h2 { font-size: 14px; letter-spacing: 1px; margin-bottom: 12px; color: var(--muted); }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
+  .bar-row .bname { width: 70px; color: var(--muted); }
+  .bar-track { flex: 1; background: var(--paper); border-radius: 4px; height: 20px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--expense); border-radius: 4px; }
+  .bar-row .bval { width: 70px; text-align: right; font-variant-numeric: tabular-nums; }
+  .banner { background:#fff4e5; border:1px solid #f0d9b5; color:#8a6d3b; padding:10px 14px; border-radius:6px; font-size:13px; margin-bottom:18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>記 帳 本</h1>
+    <div id="userbar"></div>
+  </header>
+
+  <div id="config-warning" class="banner" style="display:none;">
+    尚未填入 Firebase 設定。請打開這個 .html 檔，把 firebaseConfig 換成你自己的專案設定。
+  </div>
+
+  <div id="login">
+    <p>用 Google 帳號登入，開始記帳。</p>
+    <button id="loginBtn">使用 Google 登入</button>
+  </div>
+
+  <main id="app" style="display:none;">
+    <div class="monthnav">
+      <button id="prevM">‹</button>
+      <span id="monthLabel"></span>
+      <button id="nextM">›</button>
+    </div>
+
+    <div class="summary">
+      <div class="stat in"><div class="label">收入</div><div class="num" id="sumIn">0</div></div>
+      <div class="stat out"><div class="label">支出</div><div class="num" id="sumOut">0</div></div>
+      <div class="stat"><div class="label">結餘</div><div class="num" id="sumNet">0</div></div>
+    </div>
+
+    <form class="form" id="entryForm">
+      <div class="form-row">
+        <div class="toggle">
+          <button type="button" id="tExp" class="active exp" data-type="expense">支出</button>
+          <button type="button" id="tInc" data-type="income">收入</button>
+        </div>
+        <input type="date" id="date" required>
+      </div>
+      <div class="form-row">
+        <input type="number" id="amount" placeholder="金額" step="1" min="0" required>
+        <select id="category"></select>
+      </div>
+      <div class="form-row">
+        <input type="text" id="note" placeholder="備註（可留空）">
+      </div>
+      <button type="submit" class="add">新增一筆</button>
+    </form>
+
+    <div id="list"></div>
+
+    <div class="chart" id="chartBox" style="display:none;">
+      <h2>本月支出分類</h2>
+      <div id="bars"></div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ▼▼▼ 把這裡換成你自己 Firebase 專案的設定 ▼▼▼
+const firebaseConfig = {
+  apiKey: "AIzaSyA2bUsLwZqdwpecPuFQiaepfkflBsA5qNM",
+  authDomain: "acco-b4da3.firebaseapp.com",
+  projectId: "acco-b4da3",
+  storageBucket: "acco-b4da3.firebasestorage.app",
+  messagingSenderId: "283071514602",
+  appId: "1:283071514602:web:9157cafed08aece6935493",
+  measurementId: "G-N7STXQDR9L"
+};
+// ▲▲▲ 換完就能用 ▲▲▲
+
+const CATEGORIES = {
+  expense: ["飲食", "交通", "居住", "娛樂", "醫療", "教育", "購物", "其他"],
+  income: ["薪資", "獎金", "投資", "退款", "其他"]
+};
+
+// --- 若尚未填入設定，只顯示提醒 ---
+if (firebaseConfig.apiKey === "PASTE_YOUR_API_KEY") {
+  document.getElementById("config-warning").style.display = "block";
+  document.getElementById("login").style.display = "none";
+} else {
+  startApp();
+}
+
+function startApp() {
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  let uid = null, unsub = null, entries = [], viewDate = new Date(), curType = "expense";
+
+  const $ = id => document.getElementById(id);
+  const fmt = n => n.toLocaleString("zh-Hant");
+
+  // auth
+  $("loginBtn").onclick = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
+
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      uid = user.uid;
+      $("login").style.display = "none";
+      $("app").style.display = "block";
+      $("userbar").innerHTML = `<span>${user.displayName || user.email}</span>`;
+      const b = document.createElement("button");
+      b.textContent = "登出";
+      b.onclick = () => signOut(auth);
+      $("userbar").appendChild(b);
+      subscribe();
+    } else {
+      uid = null;
+      if (unsub) unsub();
+      $("login").style.display = "block";
+      $("app").style.display = "none";
+      $("userbar").innerHTML = "";
+    }
+  });
+
+  function subscribe() {
+    if (unsub) unsub();
+    const q = query(collection(db, "entries"), where("uid", "==", uid), orderBy("date", "desc"));
+    unsub = onSnapshot(q, snap => {
+      entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      render();
+    }, err => alert("讀取失敗：" + err.message));
+  }
+
+  // form
+  function fillCategories() {
+    const sel = $("category");
+    sel.innerHTML = "";
+    CATEGORIES[curType].forEach(c => {
+      const o = document.createElement("option");
+      o.value = c; o.textContent = c; sel.appendChild(o);
+    });
+  }
+  function setType(t) {
+    curType = t;
+    $("tExp").classList.toggle("active", t === "expense");
+    $("tInc").classList.toggle("active", t === "income");
+    fillCategories();
+  }
+  $("tExp").onclick = () => setType("expense");
+  $("tInc").onclick = () => setType("income");
+  $("date").valueAsDate = new Date();
+  setType("expense");
+
+  $("entryForm").onsubmit = async e => {
+    e.preventDefault();
+    const amount = Math.round(Number($("amount").value));
+    if (!amount || amount <= 0) return;
+    try {
+      await addDoc(collection(db, "entries"), {
+        uid, type: curType, amount,
+        category: $("category").value,
+        note: $("note").value.trim(),
+        date: $("date").value,
+        created: serverTimestamp()
+      });
+      $("amount").value = ""; $("note").value = "";
+    } catch (err) { alert("新增失敗：" + err.message); }
+  };
+
+  async function removeEntry(id) {
+    if (!confirm("刪除這筆？")) return;
+    try { await deleteDoc(doc(db, "entries", id)); }
+    catch (err) { alert("刪除失敗：" + err.message); }
+  }
+  window.__removeEntry = removeEntry;
+
+  // month nav
+  $("prevM").onclick = () => { viewDate.setMonth(viewDate.getMonth() - 1); render(); };
+  $("nextM").onclick = () => { viewDate.setMonth(viewDate.getMonth() + 1); render(); };
+
+  function render() {
+    const y = viewDate.getFullYear(), m = viewDate.getMonth();
+    $("monthLabel").textContent = `${y} 年 ${m + 1} 月`;
+    const prefix = `${y}-${String(m + 1).padStart(2, "0")}`;
+    const monthly = entries.filter(e => (e.date || "").startsWith(prefix));
+
+    let inc = 0, exp = 0;
+    monthly.forEach(e => e.type === "income" ? inc += e.amount : exp += e.amount);
+    $("sumIn").textContent = fmt(inc);
+    $("sumOut").textContent = fmt(exp);
+    $("sumNet").textContent = fmt(inc - exp);
+
+    // list grouped by day
+    const box = $("list");
+    if (!monthly.length) {
+      box.innerHTML = `<div class="empty">這個月還沒有記錄</div>`;
+    } else {
+      const byDay = {};
+      monthly.forEach(e => { (byDay[e.date] = byDay[e.date] || []).push(e); });
+      box.innerHTML = Object.keys(byDay).sort().reverse().map(day => {
+        const rows = byDay[day].map(e => `
+          <div class="item">
+            <span class="cat">${e.category}</span>
+            <span class="note">${escapeHtml(e.note) || ""}</span>
+            <span class="amt ${e.type === "income" ? "in" : "out"}">${e.type === "income" ? "+" : "−"}${fmt(e.amount)}</span>
+            <button class="del" onclick="__removeEntry('${e.id}')">×</button>
+          </div>`).join("");
+        return `<div class="day-group"><div class="day-head">${day}</div>${rows}</div>`;
+      }).join("");
+    }
+
+    // chart: expense by category
+    const catSum = {};
+    monthly.filter(e => e.type === "expense").forEach(e => catSum[e.category] = (catSum[e.category] || 0) + e.amount);
+    const cats = Object.entries(catSum).sort((a, b) => b[1] - a[1]);
+    if (cats.length) {
+      $("chartBox").style.display = "block";
+      const max = cats[0][1];
+      $("bars").innerHTML = cats.map(([c, v]) => `
+        <div class="bar-row">
+          <span class="bname">${c}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${(v / max * 100).toFixed(1)}%"></div></div>
+          <span class="bval">${fmt(v)}</span>
+        </div>`).join("");
+    } else {
+      $("chartBox").style.display = "none";
+    }
+  }
+
+  function escapeHtml(s) {
+    return (s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+}
+</script>
+</body>
+</html>
