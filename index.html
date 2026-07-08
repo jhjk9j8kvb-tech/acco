@@ -6,54 +6,28 @@
 <title>記帳本</title>
 <style>
   :root {
-    --ink: #1c1a17;
-    --paper: #faf8f3;
-    --line: #e3ddd0;
-    --muted: #8a8175;
-    --income: #2f7d5b;
-    --expense: #b4432f;
-    --transfer: #6b6f76;
-    --accent: #3a5a78;
-    --card: #ffffff;
+    --ink: #1c1a17; --paper: #faf8f3; --line: #e3ddd0; --muted: #8a8175;
+    --income: #2f7d5b; --expense: #b4432f; --transfer: #6b6f76; --accent: #3a5a78; --card: #ffffff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    line-height: 1.6;
-    padding: 0 16px 60px;
+    background: var(--paper); color: var(--ink); line-height: 1.6; padding: 0 16px 60px;
   }
   .wrap { max-width: 720px; margin: 0 auto; }
-
-  header {
-    display: flex; align-items: baseline; justify-content: space-between;
-    padding: 24px 0 16px; border-bottom: 2px solid var(--ink); margin-bottom: 18px;
-  }
+  header { display: flex; align-items: baseline; justify-content: space-between; padding: 24px 0 16px; border-bottom: 2px solid var(--ink); margin-bottom: 18px; }
   header h1 { font-size: 22px; font-weight: 700; letter-spacing: 2px; }
   #userbar { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
-  #userbar button {
-    background: none; border: 1px solid var(--line); border-radius: 4px;
-    padding: 4px 10px; cursor: pointer; font-size: 12px; color: var(--ink);
-  }
+  #userbar button { background: none; border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: var(--ink); }
   #userbar button:hover { border-color: var(--ink); }
-
   #login { text-align: center; padding: 80px 0; }
   #login p { color: var(--muted); margin-bottom: 24px; }
-  #login button {
-    background: var(--ink); color: var(--paper); border: none; border-radius: 6px;
-    padding: 12px 28px; font-size: 15px; cursor: pointer;
-  }
+  #login button { background: var(--ink); color: var(--paper); border: none; border-radius: 6px; padding: 12px 28px; font-size: 15px; cursor: pointer; }
 
-  .tabs { display: flex; gap: 4px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
-  .tabs button {
-    background: none; border: none; padding: 10px 16px; cursor: pointer; font-size: 14px;
-    color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
-  }
+  .tabs { display: flex; gap: 2px; margin-bottom: 18px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .tabs button { background: none; border: none; padding: 10px 14px; cursor: pointer; font-size: 14px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
   .tabs button.active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
-
-  .panel { display: none; }
-  .panel.active { display: block; }
+  .panel { display: none; } .panel.active { display: block; }
 
   .balhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
   .balhead h2 { font-size: 14px; letter-spacing: 1px; color: var(--muted); }
@@ -61,18 +35,10 @@
   .viewtoggle button { border: none; background: none; padding: 6px 12px; cursor: pointer; font-size: 12px; color: var(--muted); }
   .viewtoggle button.active { background: var(--accent); color: #fff; }
 
-  .acct-card {
-    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
-    padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
-  }
-  .acct-card .aname { font-weight: 600; }
-  .acct-card .acur { font-size: 12px; color: var(--muted); margin-left: 8px; }
-  .acct-card .abal { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 18px; }
-  .acct-card .abal.neg { color: var(--expense); }
-  .total-card {
-    background: var(--ink); color: var(--paper); border-radius: 8px; padding: 16px;
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
-  }
+  .acct-card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+  .acct-card .aname { font-weight: 600; } .acct-card .acur { font-size: 12px; color: var(--muted); margin-left: 8px; }
+  .acct-card .abal { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 18px; } .acct-card .abal.neg { color: var(--expense); }
+  .total-card { background: var(--ink); color: var(--paper); border-radius: 8px; padding: 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
   .total-card .tlabel { font-size: 13px; opacity: .8; letter-spacing: 1px; }
   .total-card .tval { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
 
@@ -85,9 +51,14 @@
   .stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
   .stat .label { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
   .stat .num { font-size: 20px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
-  .stat.in .num { color: var(--income); }
-  .stat.out .num { color: var(--expense); }
+  .stat.in .num { color: var(--income); } .stat.out .num { color: var(--expense); }
   .summary-note { font-size: 11px; color: var(--muted); text-align: center; margin: -8px 0 16px; }
+
+  .budget-bar-wrap { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
+  .budget-bar-wrap .bhead { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+  .budget-bar-wrap .btrack { background: var(--paper); border-radius: 4px; height: 12px; overflow: hidden; }
+  .budget-bar-wrap .bfill { height: 100%; background: var(--income); transition: width .3s; }
+  .budget-bar-wrap .bfill.warn { background: #d9a441; } .budget-bar-wrap .bfill.over { background: var(--expense); }
 
   .form { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 22px; }
   .form-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
@@ -97,10 +68,7 @@
   .toggle button.active.exp { background: var(--expense); }
   .toggle button.active.inc { background: var(--income); }
   .toggle button.active.tra { background: var(--transfer); }
-  .form input, .form select {
-    padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px;
-    font-size: 14px; font-family: inherit; background: var(--paper);
-  }
+  .form input, .form select { padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; font-family: inherit; background: var(--paper); }
   .form input[type="number"] { flex: 1; min-width: 90px; }
   .form input[type="text"] { flex: 2; min-width: 120px; }
   .form input[type="date"] { flex: 1; }
@@ -108,16 +76,25 @@
   .form .add { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 10px; font-size: 15px; cursor: pointer; width: 100%; }
   .form .add:hover { opacity: .9; }
   .cur-hint { font-size: 12px; color: var(--muted); align-self: center; }
+  .fav-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .fav-chip { font-size: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 4px 12px; cursor: pointer; }
+  .fav-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .save-fav { font-size: 12px; background: none; border: 1px dashed var(--line); border-radius: 20px; padding: 4px 12px; cursor: pointer; color: var(--muted); }
+
+  .filterbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .filterbar input, .filterbar select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 13px; background: var(--card); }
+  .filterbar input[type="text"] { flex: 2; min-width: 120px; }
+  .filterbar select { flex: 1; min-width: 90px; }
+  .filterbar .clearf { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 13px; color: var(--muted); }
 
   .day-head { font-size: 12px; color: var(--muted); padding: 12px 4px 6px; letter-spacing: 1px; border-bottom: 1px solid var(--line); }
-  .item { display: flex; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--line); }
+  .item { display: flex; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .item:hover { background: rgba(0,0,0,.02); }
   .item .cat { font-size: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 3px 10px; color: var(--muted); white-space: nowrap; }
   .item .note { flex: 1; font-size: 14px; }
   .item .acctname { font-size: 11px; color: var(--muted); }
   .item .amt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
-  .item .amt.in { color: var(--income); }
-  .item .amt.out { color: var(--expense); }
-  .item .amt.tra { color: var(--transfer); }
+  .item .amt.in { color: var(--income); } .item .amt.out { color: var(--expense); } .item .amt.tra { color: var(--transfer); }
   .item .del { background: none; border: none; color: var(--line); cursor: pointer; font-size: 16px; padding: 0 4px; }
   .item:hover .del { color: var(--expense); }
   .empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 14px; }
@@ -134,8 +111,7 @@
   .set-block h3 { font-size: 14px; margin-bottom: 12px; letter-spacing: 1px; }
   .acct-line { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .acct-line:last-of-type { border-bottom: none; }
-  .acct-line .n { flex: 1; }
-  .acct-line .c { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 20px; padding: 2px 10px; }
+  .acct-line .n { flex: 1; } .acct-line .c { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 20px; padding: 2px 10px; }
   .acct-line button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; }
   .acct-line button:hover { color: var(--expense); }
   .rate-row { display: flex; align-items: center; gap: 10px; }
@@ -145,9 +121,41 @@
   .newacct input { flex: 2; min-width: 120px; padding: 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; }
   .newacct select { flex: 1; min-width: 90px; padding: 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; }
   .newacct button { background: var(--ink); color: #fff; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; }
+  .cat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .cat-chip { font-size: 13px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 4px 10px; display: flex; align-items: center; gap: 6px; }
+  .cat-chip button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0; }
+  .cat-chip button:hover { color: var(--expense); }
+  .cat-add { display: flex; gap: 8px; }
+  .cat-add input { flex: 2; padding: 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; }
+  .cat-add select { flex: 1; padding: 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; }
+  .cat-add button { background: var(--ink); color: #fff; border: none; border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+  .cat-group-label { font-size: 12px; color: var(--muted); margin: 8px 0 4px; letter-spacing: 1px; }
+
+  /* trend chart */
+  .trendbox { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+  svg.trend { width: 100%; height: auto; display: block; }
+  .trend-legend { display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin-top: 10px; justify-content: center; }
+  .trend-legend span { display: flex; align-items: center; gap: 5px; }
+  .trend-legend i { width: 12px; height: 3px; display: inline-block; border-radius: 2px; }
+
+  /* edit modal */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 100; }
+  .modal-bg.show { display: flex; }
+  .modal { background: var(--paper); border-radius: 10px; padding: 20px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+  .modal h3 { font-size: 16px; margin-bottom: 16px; }
+  .modal label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 4px; letter-spacing: 1px; }
+  .modal input, .modal select { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; background: var(--card); font-family: inherit; }
+  .modal .mrow { display: flex; gap: 8px; }
+  .modal .mrow > * { flex: 1; }
+  .modal .mbtns { display: flex; gap: 8px; margin-top: 20px; }
+  .modal .mbtns button { flex: 1; padding: 10px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; }
+  .modal .msave { background: var(--accent); color: #fff; }
+  .modal .mcancel { background: none; border: 1px solid var(--line); color: var(--ink); }
 
   .banner { background:#fff4e5; border:1px solid #f0d9b5; color:#8a6d3b; padding:10px 14px; border-radius:6px; font-size:13px; margin-bottom:18px; }
   .transfer-fields { display: none; }
+  .toolbtn { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; cursor: pointer; font-size: 13px; color: var(--ink); }
+  .toolbtn:hover { border-color: var(--ink); }
 </style>
 </head>
 <body>
@@ -168,6 +176,7 @@
     <div class="tabs">
       <button data-tab="ledger" class="active">記帳</button>
       <button data-tab="accounts">帳戶</button>
+      <button data-tab="trend">趨勢</button>
       <button data-tab="settings">設定</button>
     </div>
 
@@ -192,8 +201,10 @@
       </div>
 
       <div id="summaryBox"></div>
+      <div id="budgetBox"></div>
 
       <form class="form" id="entryForm">
+        <div class="fav-row" id="favRow"></div>
         <div class="form-row">
           <div class="toggle">
             <button type="button" id="tExp" class="active exp" data-type="expense">支出</button>
@@ -232,7 +243,15 @@
         </div>
 
         <button type="submit" class="add">新增一筆</button>
+        <button type="button" class="save-fav" id="saveFavBtn" style="margin-top:10px;width:100%">＋ 把目前輸入存成常用</button>
       </form>
+
+      <div class="filterbar">
+        <input type="text" id="fSearch" placeholder="搜尋備註或分類…">
+        <select id="fType"><option value="">全部類型</option><option value="expense">支出</option><option value="income">收入</option><option value="transfer">轉帳</option></select>
+        <select id="fAccount"><option value="">全部帳戶</option></select>
+        <button class="clearf" id="clearFilter">清除</button>
+      </div>
 
       <div id="list"></div>
 
@@ -253,6 +272,18 @@
       <div id="acctBalances"></div>
     </section>
 
+    <section class="panel" id="panel-trend">
+      <div class="balhead"><h2>近 6 個月收支趨勢（折台幣）</h2></div>
+      <div class="trendbox">
+        <div id="trendChart"></div>
+        <div class="trend-legend">
+          <span><i style="background:var(--income)"></i>收入</span>
+          <span><i style="background:var(--expense)"></i>支出</span>
+          <span><i style="background:var(--accent)"></i>結餘</span>
+        </div>
+      </div>
+    </section>
+
     <section class="panel" id="panel-settings">
       <div class="set-block">
         <h3>匯率設定</h3>
@@ -262,7 +293,29 @@
           <span>TWD</span>
           <button id="saveRate">儲存</button>
         </div>
-        <p style="font-size:12px;color:var(--muted);margin-top:8px;">手動輸入，影響所有折台幣的顯示。</p>
+      </div>
+
+      <div class="set-block">
+        <h3>每月支出預算（折台幣，0 = 不設）</h3>
+        <div class="rate-row">
+          <span>每月上限</span>
+          <input type="number" id="budgetInput" step="100" min="0">
+          <span>TWD</span>
+          <button id="saveBudget">儲存</button>
+        </div>
+      </div>
+
+      <div class="set-block">
+        <h3>分類管理</h3>
+        <div class="cat-group-label">支出分類</div>
+        <div class="cat-chips" id="expCats"></div>
+        <div class="cat-group-label">收入分類</div>
+        <div class="cat-chips" id="incCats"></div>
+        <div class="cat-add">
+          <input type="text" id="newCatName" placeholder="新分類名稱">
+          <select id="newCatType"><option value="expense">支出</option><option value="income">收入</option></select>
+          <button id="addCat">新增</button>
+        </div>
       </div>
 
       <div class="set-block">
@@ -270,15 +323,60 @@
         <div id="acctList"></div>
         <div class="newacct">
           <input type="text" id="newAcctName" placeholder="帳戶名稱（如：荷蘭 ABN 帳戶）">
-          <select id="newAcctCur">
-            <option value="TWD">TWD 台幣</option>
-            <option value="EUR">EUR 歐元</option>
-          </select>
+          <select id="newAcctCur"><option value="TWD">TWD 台幣</option><option value="EUR">EUR 歐元</option></select>
           <button id="addAcct">新增</button>
         </div>
       </div>
+
+      <div class="set-block">
+        <h3>資料備份</h3>
+        <button class="toolbtn" id="exportCsv">匯出全部記錄為 CSV</button>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;">下載成 Excel 可開的檔案，留存備份用。</p>
+      </div>
+
+      <div class="set-block">
+        <h3>常用記錄</h3>
+        <div id="favList"></div>
+      </div>
     </section>
   </main>
+</div>
+
+<!-- edit modal -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <h3>編輯記錄</h3>
+    <div id="editNormal">
+      <label>日期</label>
+      <input type="date" id="eDate">
+      <label>帳戶</label>
+      <select id="eAccount"></select>
+      <label>金額</label>
+      <input type="number" id="eAmount" step="0.01" min="0">
+      <label>分類</label>
+      <select id="eCategory"></select>
+      <label>備註</label>
+      <input type="text" id="eNote">
+    </div>
+    <div id="editTransfer" style="display:none;">
+      <label>日期</label>
+      <input type="date" id="etDate">
+      <div class="mrow">
+        <div><label>轉出帳戶</label><select id="eFrom"></select></div>
+        <div><label>轉出金額</label><input type="number" id="eFromAmt" step="0.01" min="0"></div>
+      </div>
+      <div class="mrow">
+        <div><label>轉入帳戶</label><select id="eTo"></select></div>
+        <div><label>轉入金額</label><input type="number" id="eToAmt" step="0.01" min="0"></div>
+      </div>
+      <label>備註</label>
+      <input type="text" id="etNote">
+    </div>
+    <div class="mbtns">
+      <button class="mcancel" id="editCancel">取消</button>
+      <button class="msave" id="editSave">儲存</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -299,7 +397,7 @@ const firebaseConfig = {
   measurementId: "G-N7STXQDR9L"
 };
 
-const CATEGORIES = {
+const DEFAULT_CATS = {
   expense: ["飲食", "交通", "居住", "娛樂", "醫療", "教育", "購物", "其他"],
   income: ["薪資", "獎金", "投資", "退款", "其他"]
 };
@@ -320,14 +418,18 @@ function startApp() {
 
   let uid = null;
   let unsubEntries = null, unsubAccounts = null, unsubSettings = null;
-  let entries = [], accounts = [], settings = { rate: 36, view: "twd" };
+  let entries = [], accounts = [];
+  let settings = { rate: 36, budget: 0, categories: DEFAULT_CATS, favorites: [] };
   let viewDate = new Date(), curType = "expense", balView = "twd";
+  let filter = { search: "", type: "", account: "" };
+  let editingId = null;
 
   const $ = id => document.getElementById(id);
   const rate = () => Number(settings.rate) || 36;
   const acctById = id => accounts.find(a => a.id === id);
   const toTWD = (amt, cur) => cur === "EUR" ? amt * rate() : amt;
   const fmtMoney = (n, cur) => (CUR_SYMBOL[cur] || "") + Math.round(n).toLocaleString("zh-Hant");
+  const cats = t => (settings.categories && settings.categories[t]) || DEFAULT_CATS[t];
 
   $("loginBtn").onclick = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
 
@@ -352,8 +454,15 @@ function startApp() {
 
   function subscribeAll() {
     unsubSettings = onSnapshot(doc(db, "settings", uid), snap => {
-      if (snap.exists()) settings = { rate: 36, view: "twd", ...snap.data() };
+      const d = snap.exists() ? snap.data() : {};
+      settings = {
+        rate: d.rate ?? 36,
+        budget: d.budget ?? 0,
+        categories: d.categories ?? DEFAULT_CATS,
+        favorites: d.favorites ?? []
+      };
       $("rateInput").value = settings.rate;
+      $("budgetInput").value = settings.budget;
       renderAll();
     });
     const qa = query(collection(db, "accounts"), where("uid", "==", uid));
@@ -367,6 +476,11 @@ function startApp() {
       entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderAll();
     }, err => alert("讀取失敗：" + err.message));
+  }
+
+  async function saveSettings(patch) {
+    try { await setDoc(doc(db, "settings", uid), { ...settings, ...patch }, { merge: true }); }
+    catch (err) { alert("儲存失敗：" + err.message); }
   }
 
   document.querySelectorAll(".tabs button").forEach(btn => {
@@ -398,26 +512,30 @@ function startApp() {
     $("tTra").classList.toggle("active", t === "transfer");
     $("normalFields").style.display = t === "transfer" ? "none" : "block";
     $("transferFields").style.display = t === "transfer" ? "block" : "none";
-    if (t !== "transfer") fillCategories();
+    if (t !== "transfer") fillCategories($("category"), t);
   }
   $("tExp").onclick = () => setType("expense");
   $("tInc").onclick = () => setType("income");
   $("tTra").onclick = () => setType("transfer");
 
-  function fillCategories() {
-    const sel = $("category"); sel.innerHTML = "";
-    (CATEGORIES[curType] || CATEGORIES.expense).forEach(c => {
-      const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o);
+  function fillCategories(sel, type, selected) {
+    sel.innerHTML = "";
+    cats(type).forEach(c => {
+      const o = document.createElement("option"); o.value = c; o.textContent = c;
+      if (c === selected) o.selected = true;
+      sel.appendChild(o);
     });
   }
 
   function fillAccountSelects() {
     const opts = accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}（${a.currency}）</option>`).join("");
-    ["account", "fromAcct", "toAcct"].forEach(id => {
-      const el = $(id); const prev = el.value;
+    ["account", "fromAcct", "toAcct", "eAccount", "eFrom", "eTo"].forEach(id => {
+      const el = $(id); if (!el) return; const prev = el.value;
       el.innerHTML = opts;
       if (prev && accounts.some(a => a.id === prev)) el.value = prev;
     });
+    const fOpts = `<option value="">全部帳戶</option>` + opts;
+    const fa = $("fAccount"); const fprev = fa.value; fa.innerHTML = fOpts; fa.value = fprev;
     updateCurHints();
   }
   function updateCurHints() {
@@ -433,10 +551,19 @@ function startApp() {
   $("date").valueAsDate = new Date();
   setType("expense");
 
+  // filters
+  $("fSearch").oninput = e => { filter.search = e.target.value.trim(); renderList(); };
+  $("fType").onchange = e => { filter.type = e.target.value; renderList(); };
+  $("fAccount").onchange = e => { filter.account = e.target.value; renderList(); };
+  $("clearFilter").onclick = () => {
+    filter = { search: "", type: "", account: "" };
+    $("fSearch").value = ""; $("fType").value = ""; $("fAccount").value = "";
+    renderList();
+  };
+
   $("entryForm").onsubmit = async e => {
     e.preventDefault();
     if (!accounts.length) { alert("請先到「設定」建立至少一個帳戶。"); return; }
-
     if (curType === "transfer") {
       const from = $("fromAcct").value, to = $("toAcct").value;
       const fromAmt = Number($("fromAmt").value), toAmt = Number($("toAmt").value);
@@ -453,7 +580,6 @@ function startApp() {
       } catch (err) { alert("新增失敗：" + err.message); }
       return;
     }
-
     const amount = Number($("amount").value);
     if (!(amount > 0)) return;
     try {
@@ -473,16 +599,98 @@ function startApp() {
   }
   window.__removeEntry = removeEntry;
 
+  // ---- edit modal ----
+  function openEdit(id) {
+    const e = entries.find(x => x.id === id);
+    if (!e) return;
+    editingId = id;
+    if (e.type === "transfer") {
+      $("editNormal").style.display = "none";
+      $("editTransfer").style.display = "block";
+      $("etDate").value = e.date;
+      fillCategories; // no-op
+      $("eFrom").value = e.fromAcct; $("eTo").value = e.toAcct;
+      $("eFromAmt").value = e.fromAmt; $("eToAmt").value = e.toAmt;
+      $("etNote").value = e.note || "";
+    } else {
+      $("editNormal").style.display = "block";
+      $("editTransfer").style.display = "none";
+      $("eDate").value = e.date;
+      $("eAccount").value = e.accountId;
+      $("eAmount").value = e.amount;
+      fillCategories($("eCategory"), e.type, e.category);
+      $("eNote").value = e.note || "";
+    }
+    $("editModal").classList.add("show");
+  }
+  window.__openEdit = openEdit;
+  $("editCancel").onclick = () => { $("editModal").classList.remove("show"); editingId = null; };
+  $("editModal").onclick = ev => { if (ev.target.id === "editModal") { $("editModal").classList.remove("show"); editingId = null; } };
+
+  $("editSave").onclick = async () => {
+    if (!editingId) return;
+    const e = entries.find(x => x.id === editingId);
+    if (!e) return;
+    try {
+      if (e.type === "transfer") {
+        const from = $("eFrom").value, to = $("eTo").value;
+        const fA = Number($("eFromAmt").value), tA = Number($("eToAmt").value);
+        if (from === to) { alert("轉出和轉入不能同一帳戶"); return; }
+        if (!(fA > 0) || !(tA > 0)) { alert("金額要大於 0"); return; }
+        await updateDoc(doc(db, "entries", editingId), {
+          date: $("etDate").value, fromAcct: from, toAcct: to,
+          fromAmt: fA, toAmt: tA, note: $("etNote").value.trim()
+        });
+      } else {
+        const amt = Number($("eAmount").value);
+        if (!(amt > 0)) { alert("金額要大於 0"); return; }
+        await updateDoc(doc(db, "entries", editingId), {
+          date: $("eDate").value, accountId: $("eAccount").value,
+          amount: amt, category: $("eCategory").value, note: $("eNote").value.trim()
+        });
+      }
+      $("editModal").classList.remove("show"); editingId = null;
+    } catch (err) { alert("儲存失敗：" + err.message); }
+  };
+
   $("prevM").onclick = () => { viewDate.setMonth(viewDate.getMonth() - 1); renderAll(); };
   $("nextM").onclick = () => { viewDate.setMonth(viewDate.getMonth() + 1); renderAll(); };
 
-  $("saveRate").onclick = async () => {
+  $("saveRate").onclick = () => {
     const r = Number($("rateInput").value);
     if (!(r > 0)) { alert("匯率要大於 0"); return; }
-    try { await setDoc(doc(db, "settings", uid), { ...settings, rate: r }, { merge: true }); }
-    catch (err) { alert("儲存失敗：" + err.message); }
+    saveSettings({ rate: r });
+  };
+  $("saveBudget").onclick = () => {
+    const b = Number($("budgetInput").value);
+    if (b < 0 || isNaN(b)) { alert("預算不能小於 0"); return; }
+    saveSettings({ budget: b });
   };
 
+  // categories management
+  $("addCat").onclick = () => {
+    const name = $("newCatName").value.trim();
+    const type = $("newCatType").value;
+    if (!name) { alert("請輸入分類名稱"); return; }
+    const cur = settings.categories || DEFAULT_CATS;
+    if (cur[type].includes(name)) { alert("已有同名分類"); return; }
+    const next = { expense: [...cur.expense], income: [...cur.income] };
+    next[type].push(name);
+    saveSettings({ categories: next });
+    $("newCatName").value = "";
+  };
+  function removeCat(type, name) {
+    const used = entries.some(e => e.type === type && e.category === name);
+    if (used) { alert("這個分類已被使用，不能刪除。"); return; }
+    if (!confirm(`刪除分類「${name}」？`)) return;
+    const cur = settings.categories || DEFAULT_CATS;
+    const next = { expense: [...cur.expense], income: [...cur.income] };
+    next[type] = next[type].filter(c => c !== name);
+    saveSettings({ categories: next });
+  }
+  window.__removeCat = removeCat;
+
+  // accounts management
   $("addAcct").onclick = async () => {
     const name = $("newAcctName").value.trim();
     const currency = $("newAcctCur").value;
@@ -494,25 +702,76 @@ function startApp() {
   };
   async function removeAccount(id) {
     const used = entries.some(e => e.accountId === id || e.fromAcct === id || e.toAcct === id);
-    if (used) { alert("這個帳戶已經有記錄，不能刪除。若要刪，請先處理相關記錄。"); return; }
+    if (used) { alert("這個帳戶已經有記錄，不能刪除。"); return; }
     if (!confirm("刪除這個帳戶？")) return;
     try { await deleteDoc(doc(db, "accounts", id)); }
     catch (err) { alert("刪除失敗：" + err.message); }
   }
   window.__removeAccount = removeAccount;
-
   async function renameAccount(id) {
-    const a = acctById(id);
-    if (!a) return;
+    const a = acctById(id); if (!a) return;
     const name = prompt("帳戶新名稱：", a.name);
     if (name === null) return;
-    const trimmed = name.trim();
-    if (!trimmed) { alert("名稱不能空白"); return; }
-    if (trimmed === a.name) return;
-    try { await updateDoc(doc(db, "accounts", id), { name: trimmed }); }
+    const t = name.trim();
+    if (!t) { alert("名稱不能空白"); return; }
+    if (t === a.name) return;
+    try { await updateDoc(doc(db, "accounts", id), { name: t }); }
     catch (err) { alert("改名失敗：" + err.message); }
   }
   window.__renameAccount = renameAccount;
+
+  // favorites
+  $("saveFavBtn").onclick = () => {
+    if (curType === "transfer") { alert("常用記錄目前支援收入與支出。"); return; }
+    const amount = Number($("amount").value);
+    const fav = {
+      id: Date.now().toString(),
+      type: curType, accountId: $("account").value,
+      category: $("category").value, note: $("note").value.trim(),
+      amount: amount > 0 ? amount : null
+    };
+    const favs = [...(settings.favorites || []), fav];
+    saveSettings({ favorites: favs });
+  };
+  function applyFav(fid) {
+    const f = (settings.favorites || []).find(x => x.id === fid);
+    if (!f) return;
+    setType(f.type);
+    if (f.accountId && accounts.some(a => a.id === f.accountId)) $("account").value = f.accountId;
+    fillCategories($("category"), f.type, f.category);
+    $("note").value = f.note || "";
+    if (f.amount) $("amount").value = f.amount;
+    updateCurHints();
+    $("amount").focus();
+  }
+  window.__applyFav = applyFav;
+  function removeFav(fid) {
+    const favs = (settings.favorites || []).filter(x => x.id !== fid);
+    saveSettings({ favorites: favs });
+  }
+  window.__removeFav = removeFav;
+
+  // CSV export
+  $("exportCsv").onclick = () => {
+    const header = ["日期","類型","帳戶","幣別","分類","金額","備註","轉入帳戶","轉入幣別","轉入金額"];
+    const rows = [...entries].sort((a,b)=> (a.date>b.date?1:-1)).map(e => {
+      if (e.type === "transfer") {
+        const f = acctById(e.fromAcct), t = acctById(e.toAcct);
+        return [e.date,"轉帳", f?f.name:"", f?f.currency:"", "", e.fromAmt, e.note||"", t?t.name:"", t?t.currency:"", e.toAmt];
+      }
+      const a = acctById(e.accountId);
+      return [e.date, e.type==="income"?"收入":"支出", a?a.name:"", a?a.currency:"", e.category, e.amount, e.note||"", "", "", ""];
+    });
+    const csv = [header, ...rows].map(r => r.map(cell => {
+      const s = String(cell ?? "");
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+    }).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `記帳備份_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
 
   function accountBalance(acctId) {
     let bal = 0;
@@ -530,12 +789,26 @@ function startApp() {
   function renderAll() {
     if (!uid) return;
     fillAccountSelects();
+    renderFavs();
     renderTotal();
     renderSummary();
+    renderBudget();
     renderList();
     renderChart();
     renderAcctBalances();
     renderAcctList();
+    renderCatChips();
+    renderFavList();
+    renderTrend();
+  }
+
+  function renderFavs() {
+    const favs = settings.favorites || [];
+    $("favRow").innerHTML = favs.map(f => {
+      const a = acctById(f.accountId);
+      const label = `${f.category}${f.note ? "・"+f.note : ""}`;
+      return `<span class="fav-chip" onclick="__applyFav('${f.id}')">${escapeHtml(label)}</span>`;
+    }).join("");
   }
 
   function renderTotal() {
@@ -553,12 +826,16 @@ function startApp() {
     }
   }
 
+  function monthlyEntries() {
+    const y = viewDate.getFullYear(), m = viewDate.getMonth();
+    const prefix = `${y}-${String(m + 1).padStart(2, "0")}`;
+    return entries.filter(e => (e.date || "").startsWith(prefix));
+  }
+
   function renderSummary() {
     const y = viewDate.getFullYear(), m = viewDate.getMonth();
     $("monthLabel").textContent = `${y} 年 ${m + 1} 月`;
-    const prefix = `${y}-${String(m + 1).padStart(2, "0")}`;
-    const monthly = entries.filter(e => (e.date || "").startsWith(prefix) && e.type !== "transfer");
-
+    const monthly = monthlyEntries().filter(e => e.type !== "transfer");
     const box = $("summaryBox");
     if (balView === "twd") {
       let inc = 0, exp = 0;
@@ -589,13 +866,41 @@ function startApp() {
     </div>`;
   }
 
-  function renderList() {
-    const y = viewDate.getFullYear(), m = viewDate.getMonth();
-    const prefix = `${y}-${String(m + 1).padStart(2, "0")}`;
-    const monthly = entries.filter(e => (e.date || "").startsWith(prefix));
-    const box = $("list");
-    if (!monthly.length) { box.innerHTML = `<div class="empty">這個月還沒有記錄</div>`; return; }
+  function renderBudget() {
+    const box = $("budgetBox");
+    const budget = Number(settings.budget) || 0;
+    if (!budget) { box.innerHTML = ""; return; }
+    let exp = 0;
+    monthlyEntries().filter(e => e.type === "expense").forEach(e => {
+      const a = acctById(e.accountId); exp += toTWD(e.amount, a ? a.currency : "TWD");
+    });
+    const pct = Math.min(100, exp / budget * 100);
+    const cls = pct >= 100 ? "over" : pct >= 80 ? "warn" : "";
+    const left = budget - exp;
+    box.innerHTML = `<div class="budget-bar-wrap">
+      <div class="bhead"><span>本月預算 ${fmtMoney(budget,"TWD")}</span><span>${left>=0?"剩 "+fmtMoney(left,"TWD"):"超支 "+fmtMoney(-left,"TWD")}</span></div>
+      <div class="btrack"><div class="bfill ${cls}" style="width:${pct}%"></div></div>
+    </div>`;
+  }
 
+  function passFilter(e) {
+    if (filter.type && e.type !== filter.type) return false;
+    if (filter.account) {
+      if (e.type === "transfer") { if (e.fromAcct !== filter.account && e.toAcct !== filter.account) return false; }
+      else if (e.accountId !== filter.account) return false;
+    }
+    if (filter.search) {
+      const s = filter.search.toLowerCase();
+      const hay = ((e.note||"") + " " + (e.category||"")).toLowerCase();
+      if (!hay.includes(s)) return false;
+    }
+    return true;
+  }
+
+  function renderList() {
+    const monthly = monthlyEntries().filter(passFilter);
+    const box = $("list");
+    if (!monthly.length) { box.innerHTML = `<div class="empty">沒有符合的記錄</div>`; return; }
     const byDay = {};
     monthly.forEach(e => { (byDay[e.date] = byDay[e.date] || []).push(e); });
     box.innerHTML = Object.keys(byDay).sort().reverse().map(day => {
@@ -604,19 +909,19 @@ function startApp() {
           const f = acctById(e.fromAcct), t = acctById(e.toAcct);
           const fName = f ? f.name : "?", tName = t ? t.name : "?";
           const fCur = f ? f.currency : "", tCur = t ? t.currency : "";
-          return `<div class="item">
+          return `<div class="item" onclick="__openEdit('${e.id}')">
             <span class="cat">轉帳</span>
             <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${escapeHtml(fName)} → ${escapeHtml(tName)}</div></span>
             <span class="amt tra">${fmtMoney(e.fromAmt, fCur)} → ${fmtMoney(e.toAmt, tCur)}</span>
-            <button class="del" onclick="__removeEntry('${e.id}')">×</button>
+            <button class="del" onclick="event.stopPropagation();__removeEntry('${e.id}')">×</button>
           </div>`;
         }
         const a = acctById(e.accountId); const cur = a ? a.currency : "TWD";
-        return `<div class="item">
-          <span class="cat">${e.category}</span>
+        return `<div class="item" onclick="__openEdit('${e.id}')">
+          <span class="cat">${escapeHtml(e.category)}</span>
           <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${a ? escapeHtml(a.name) : "已刪除帳戶"}</div></span>
           <span class="amt ${e.type === "income" ? "in" : "out"}">${e.type === "income" ? "+" : "−"}${fmtMoney(e.amount, cur)}</span>
-          <button class="del" onclick="__removeEntry('${e.id}')">×</button>
+          <button class="del" onclick="event.stopPropagation();__removeEntry('${e.id}')">×</button>
         </div>`;
       }).join("");
       return `<div class="day-group"><div class="day-head">${day}</div>${rows}</div>`;
@@ -624,21 +929,19 @@ function startApp() {
   }
 
   function renderChart() {
-    const y = viewDate.getFullYear(), m = viewDate.getMonth();
-    const prefix = `${y}-${String(m + 1).padStart(2, "0")}`;
-    const monthly = entries.filter(e => (e.date || "").startsWith(prefix) && e.type === "expense");
+    const monthly = monthlyEntries().filter(e => e.type === "expense");
     const catSum = {};
     monthly.forEach(e => {
       const a = acctById(e.accountId); const cur = a ? a.currency : "TWD";
       catSum[e.category] = (catSum[e.category] || 0) + toTWD(e.amount, cur);
     });
-    const cats = Object.entries(catSum).sort((a, b) => b[1] - a[1]);
-    if (!cats.length) { $("chartBox").style.display = "none"; return; }
+    const list = Object.entries(catSum).sort((a, b) => b[1] - a[1]);
+    if (!list.length) { $("chartBox").style.display = "none"; return; }
     $("chartBox").style.display = "block";
-    const max = cats[0][1];
-    $("bars").innerHTML = cats.map(([c, v]) => `
+    const max = list[0][1];
+    $("bars").innerHTML = list.map(([c, v]) => `
       <div class="bar-row">
-        <span class="bname">${c}</span>
+        <span class="bname">${escapeHtml(c)}</span>
         <div class="bar-track"><div class="bar-fill" style="width:${(v / max * 100).toFixed(1)}%"></div></div>
         <span class="bval">${fmtMoney(v, "TWD")}</span>
       </div>`).join("");
@@ -680,9 +983,68 @@ function startApp() {
       </div>`).join("");
   }
 
+  function renderCatChips() {
+    ["expense","income"].forEach(type => {
+      const box = $(type === "expense" ? "expCats" : "incCats");
+      box.innerHTML = cats(type).map(c =>
+        `<span class="cat-chip">${escapeHtml(c)}<button onclick="__removeCat('${type}','${escapeAttr(c)}')">×</button></span>`
+      ).join("");
+    });
+  }
+
+  function renderFavList() {
+    const box = $("favList");
+    const favs = settings.favorites || [];
+    if (!favs.length) { box.innerHTML = `<p style="font-size:13px;color:var(--muted)">還沒有常用記錄。在記帳頁填好內容後按「存成常用」。</p>`; return; }
+    box.innerHTML = favs.map(f => {
+      const a = acctById(f.accountId);
+      const label = `${f.type==="income"?"收入":"支出"}・${f.category}${f.note?"・"+f.note:""}${f.amount?"・"+f.amount:""}${a?"・"+a.name:""}`;
+      return `<div class="acct-line"><span class="n">${escapeHtml(label)}</span><button onclick="__removeFav('${f.id}')">×</button></div>`;
+    }).join("");
+  }
+
+  function renderTrend() {
+    // last 6 months including current
+    const months = [];
+    const base = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(base.getFullYear(), base.getMonth() - i, 1);
+      months.push({ y: d.getFullYear(), m: d.getMonth(),
+        label: `${d.getMonth()+1}月`, prefix: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}` });
+    }
+    const data = months.map(mo => {
+      let inc = 0, exp = 0;
+      entries.filter(e => (e.date||"").startsWith(mo.prefix) && e.type !== "transfer").forEach(e => {
+        const a = acctById(e.accountId); const v = toTWD(e.amount, a ? a.currency : "TWD");
+        if (e.type === "income") inc += v; else exp += v;
+      });
+      return { ...mo, inc, exp, net: inc - exp };
+    });
+    const W = 640, H = 240, padL = 50, padR = 16, padT = 16, padB = 30;
+    const allVals = data.flatMap(d => [d.inc, d.exp, d.net]);
+    const maxV = Math.max(1, ...allVals), minV = Math.min(0, ...allVals);
+    const x = i => padL + (W - padL - padR) * (data.length === 1 ? 0.5 : i / (data.length - 1));
+    const y = v => padT + (H - padT - padB) * (1 - (v - minV) / (maxV - minV || 1));
+    const line = (key, color) => {
+      const pts = data.map((d, i) => `${x(i)},${y(d[key])}`).join(" ");
+      const dots = data.map((d, i) => `<circle cx="${x(i)}" cy="${y(d[key])}" r="3" fill="${color}"/>`).join("");
+      return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"/>${dots}`;
+    };
+    const zeroY = y(0);
+    const xLabels = data.map((d, i) => `<text x="${x(i)}" y="${H - 10}" font-size="11" fill="#8a8175" text-anchor="middle">${d.label}</text>`).join("");
+    $("trendChart").innerHTML = `<svg class="trend" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+      <line x1="${padL}" y1="${zeroY}" x2="${W-padR}" y2="${zeroY}" stroke="#e3ddd0" stroke-width="1"/>
+      ${line("inc", "#2f7d5b")}
+      ${line("exp", "#b4432f")}
+      ${line("net", "#3a5a78")}
+      ${xLabels}
+    </svg>`;
+  }
+
   function escapeHtml(s) {
     return (s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
+  function escapeAttr(s) { return (s || "").replace(/'/g, "\\'").replace(/"/g, "&quot;"); }
 }
 </script>
 </body>
