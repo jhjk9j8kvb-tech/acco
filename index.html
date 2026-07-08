@@ -285,7 +285,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc,
+import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc,
   query, where, orderBy, onSnapshot, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -501,6 +501,19 @@ function startApp() {
   }
   window.__removeAccount = removeAccount;
 
+  async function renameAccount(id) {
+    const a = acctById(id);
+    if (!a) return;
+    const name = prompt("帳戶新名稱：", a.name);
+    if (name === null) return;
+    const trimmed = name.trim();
+    if (!trimmed) { alert("名稱不能空白"); return; }
+    if (trimmed === a.name) return;
+    try { await updateDoc(doc(db, "accounts", id), { name: trimmed }); }
+    catch (err) { alert("改名失敗：" + err.message); }
+  }
+  window.__renameAccount = renameAccount;
+
   function accountBalance(acctId) {
     let bal = 0;
     for (const e of entries) {
@@ -662,7 +675,8 @@ function startApp() {
       <div class="acct-line">
         <span class="n">${escapeHtml(a.name)}</span>
         <span class="c">${a.currency}</span>
-        <button onclick="__removeAccount('${a.id}')">×</button>
+        <button title="改名" onclick="__renameAccount('${a.id}')">✎</button>
+        <button title="刪除" onclick="__removeAccount('${a.id}')">×</button>
       </div>`).join("");
   }
 
