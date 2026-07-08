@@ -12,6 +12,7 @@
     --muted: #8a8175;
     --income: #2f7d5b;
     --expense: #b4432f;
+    --transfer: #6b6f76;
     --accent: #3a5a78;
     --card: #ffffff;
   }
@@ -23,11 +24,11 @@
     line-height: 1.6;
     padding: 0 16px 60px;
   }
-  .wrap { max-width: 680px; margin: 0 auto; }
+  .wrap { max-width: 720px; margin: 0 auto; }
 
   header {
     display: flex; align-items: baseline; justify-content: space-between;
-    padding: 24px 0 16px; border-bottom: 2px solid var(--ink); margin-bottom: 20px;
+    padding: 24px 0 16px; border-bottom: 2px solid var(--ink); margin-bottom: 18px;
   }
   header h1 { font-size: 22px; font-weight: 700; letter-spacing: 2px; }
   #userbar { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
@@ -37,7 +38,6 @@
   }
   #userbar button:hover { border-color: var(--ink); }
 
-  /* login screen */
   #login { text-align: center; padding: 80px 0; }
   #login p { color: var(--muted); margin-bottom: 24px; }
   #login button {
@@ -45,75 +45,109 @@
     padding: 12px 28px; font-size: 15px; cursor: pointer;
   }
 
-  /* summary */
-  .summary {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 8px;
+  .tabs { display: flex; gap: 4px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+  .tabs button {
+    background: none; border: none; padding: 10px 16px; cursor: pointer; font-size: 14px;
+    color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
   }
-  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
-  .stat .label { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
-  .stat .num { font-size: 22px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
-  .stat.in .num { color: var(--income); }
-  .stat.out .num { color: var(--expense); }
+  .tabs button.active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
 
-  .monthnav { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 18px 0; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .balhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .balhead h2 { font-size: 14px; letter-spacing: 1px; color: var(--muted); }
+  .viewtoggle { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .viewtoggle button { border: none; background: none; padding: 6px 12px; cursor: pointer; font-size: 12px; color: var(--muted); }
+  .viewtoggle button.active { background: var(--accent); color: #fff; }
+
+  .acct-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .acct-card .aname { font-weight: 600; }
+  .acct-card .acur { font-size: 12px; color: var(--muted); margin-left: 8px; }
+  .acct-card .abal { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 18px; }
+  .acct-card .abal.neg { color: var(--expense); }
+  .total-card {
+    background: var(--ink); color: var(--paper); border-radius: 8px; padding: 16px;
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  }
+  .total-card .tlabel { font-size: 13px; opacity: .8; letter-spacing: 1px; }
+  .total-card .tval { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .monthnav { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 8px 0 18px; }
   .monthnav button { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--muted); padding: 4px 8px; }
   .monthnav button:hover { color: var(--ink); }
   .monthnav span { font-size: 15px; font-weight: 600; letter-spacing: 1px; min-width: 110px; text-align: center; }
 
-  /* form */
-  .form {
-    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
-    padding: 16px; margin-bottom: 22px;
-  }
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+  .stat .label { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .stat .num { font-size: 20px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat.in .num { color: var(--income); }
+  .stat.out .num { color: var(--expense); }
+  .summary-note { font-size: 11px; color: var(--muted); text-align: center; margin: -8px 0 16px; }
+
+  .form { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 22px; }
   .form-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
   .toggle { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-  .toggle button {
-    border: none; background: none; padding: 8px 18px; cursor: pointer; font-size: 14px; color: var(--muted);
-  }
+  .toggle button { border: none; background: none; padding: 8px 16px; cursor: pointer; font-size: 14px; color: var(--muted); }
   .toggle button.active { color: #fff; }
   .toggle button.active.exp { background: var(--expense); }
   .toggle button.active.inc { background: var(--income); }
+  .toggle button.active.tra { background: var(--transfer); }
   .form input, .form select {
     padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px;
     font-size: 14px; font-family: inherit; background: var(--paper);
   }
-  .form input[type="number"] { flex: 1; min-width: 100px; }
-  .form input[type="text"] { flex: 2; min-width: 140px; }
+  .form input[type="number"] { flex: 1; min-width: 90px; }
+  .form input[type="text"] { flex: 2; min-width: 120px; }
   .form input[type="date"] { flex: 1; }
-  .form select { flex: 1; }
-  .form .add {
-    background: var(--accent); color: #fff; border: none; border-radius: 6px;
-    padding: 10px; font-size: 15px; cursor: pointer; width: 100%;
-  }
+  .form select { flex: 1; min-width: 100px; }
+  .form .add { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 10px; font-size: 15px; cursor: pointer; width: 100%; }
   .form .add:hover { opacity: .9; }
+  .cur-hint { font-size: 12px; color: var(--muted); align-self: center; }
 
-  /* list */
-  .day-group { margin-bottom: 4px; }
   .day-head { font-size: 12px; color: var(--muted); padding: 12px 4px 6px; letter-spacing: 1px; border-bottom: 1px solid var(--line); }
-  .item {
-    display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--line);
-  }
-  .item .cat {
-    font-size: 12px; background: var(--paper); border: 1px solid var(--line);
-    border-radius: 20px; padding: 3px 10px; color: var(--muted); white-space: nowrap;
-  }
+  .item { display: flex; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--line); }
+  .item .cat { font-size: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 3px 10px; color: var(--muted); white-space: nowrap; }
   .item .note { flex: 1; font-size: 14px; }
-  .item .amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .item .acctname { font-size: 11px; color: var(--muted); }
+  .item .amt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
   .item .amt.in { color: var(--income); }
   .item .amt.out { color: var(--expense); }
+  .item .amt.tra { color: var(--transfer); }
   .item .del { background: none; border: none; color: var(--line); cursor: pointer; font-size: 16px; padding: 0 4px; }
   .item:hover .del { color: var(--expense); }
   .empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 14px; }
 
-  /* chart */
   .chart { margin-top: 26px; }
   .chart h2 { font-size: 14px; letter-spacing: 1px; margin-bottom: 12px; color: var(--muted); }
   .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
   .bar-row .bname { width: 70px; color: var(--muted); }
-  .bar-track { flex: 1; background: var(--paper); border-radius: 4px; height: 20px; overflow: hidden; }
-  .bar-fill { height: 100%; background: var(--expense); border-radius: 4px; }
-  .bar-row .bval { width: 70px; text-align: right; font-variant-numeric: tabular-nums; }
+  .bar-track { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 4px; height: 20px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--expense); }
+  .bar-row .bval { width: 90px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  .set-block { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 18px; }
+  .set-block h3 { font-size: 14px; margin-bottom: 12px; letter-spacing: 1px; }
+  .acct-line { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .acct-line:last-of-type { border-bottom: none; }
+  .acct-line .n { flex: 1; }
+  .acct-line .c { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 20px; padding: 2px 10px; }
+  .acct-line button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; }
+  .acct-line button:hover { color: var(--expense); }
+  .rate-row { display: flex; align-items: center; gap: 10px; }
+  .rate-row input { width: 100px; padding: 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; }
+  .rate-row button, .set-block .save { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; font-size: 14px; }
+  .newacct { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .newacct input { flex: 2; min-width: 120px; padding: 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; }
+  .newacct select { flex: 1; min-width: 90px; padding: 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; }
+  .newacct button { background: var(--ink); color: #fff; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; }
+
   .banner { background:#fff4e5; border:1px solid #f0d9b5; color:#8a6d3b; padding:10px 14px; border-radius:6px; font-size:13px; margin-bottom:18px; }
+  .transfer-fields { display: none; }
 </style>
 </head>
 <body>
@@ -123,9 +157,7 @@
     <div id="userbar"></div>
   </header>
 
-  <div id="config-warning" class="banner" style="display:none;">
-    尚未填入 Firebase 設定。請打開這個 .html 檔，把 firebaseConfig 換成你自己的專案設定。
-  </div>
+  <div id="config-warning" class="banner" style="display:none;">尚未填入 Firebase 設定。</div>
 
   <div id="login">
     <p>用 Google 帳號登入，開始記帳。</p>
@@ -133,42 +165,119 @@
   </div>
 
   <main id="app" style="display:none;">
-    <div class="monthnav">
-      <button id="prevM">‹</button>
-      <span id="monthLabel"></span>
-      <button id="nextM">›</button>
+    <div class="tabs">
+      <button data-tab="ledger" class="active">記帳</button>
+      <button data-tab="accounts">帳戶</button>
+      <button data-tab="settings">設定</button>
     </div>
 
-    <div class="summary">
-      <div class="stat in"><div class="label">收入</div><div class="num" id="sumIn">0</div></div>
-      <div class="stat out"><div class="label">支出</div><div class="num" id="sumOut">0</div></div>
-      <div class="stat"><div class="label">結餘</div><div class="num" id="sumNet">0</div></div>
-    </div>
+    <section class="panel active" id="panel-ledger">
+      <div class="total-card">
+        <span class="tlabel" id="totalLabel">總資產（折台幣）</span>
+        <span class="tval" id="totalVal">—</span>
+      </div>
 
-    <form class="form" id="entryForm">
-      <div class="form-row">
-        <div class="toggle">
-          <button type="button" id="tExp" class="active exp" data-type="expense">支出</button>
-          <button type="button" id="tInc" data-type="income">收入</button>
+      <div class="monthnav">
+        <button id="prevM">‹</button>
+        <span id="monthLabel"></span>
+        <button id="nextM">›</button>
+      </div>
+
+      <div class="balhead">
+        <h2>本月收支</h2>
+        <div class="viewtoggle" id="viewToggle">
+          <button data-view="twd" class="active">折台幣</button>
+          <button data-view="split">分幣別</button>
         </div>
-        <input type="date" id="date" required>
       </div>
-      <div class="form-row">
-        <input type="number" id="amount" placeholder="金額" step="1" min="0" required>
-        <select id="category"></select>
-      </div>
-      <div class="form-row">
-        <input type="text" id="note" placeholder="備註（可留空）">
-      </div>
-      <button type="submit" class="add">新增一筆</button>
-    </form>
 
-    <div id="list"></div>
+      <div id="summaryBox"></div>
 
-    <div class="chart" id="chartBox" style="display:none;">
-      <h2>本月支出分類</h2>
-      <div id="bars"></div>
-    </div>
+      <form class="form" id="entryForm">
+        <div class="form-row">
+          <div class="toggle">
+            <button type="button" id="tExp" class="active exp" data-type="expense">支出</button>
+            <button type="button" id="tInc" data-type="income">收入</button>
+            <button type="button" id="tTra" data-type="transfer">轉帳</button>
+          </div>
+          <input type="date" id="date" required>
+        </div>
+
+        <div id="normalFields">
+          <div class="form-row">
+            <select id="account"></select>
+            <input type="number" id="amount" placeholder="金額" step="0.01" min="0">
+            <span class="cur-hint" id="curHint"></span>
+          </div>
+          <div class="form-row">
+            <select id="category"></select>
+            <input type="text" id="note" placeholder="備註（可留空）">
+          </div>
+        </div>
+
+        <div id="transferFields" class="transfer-fields">
+          <div class="form-row">
+            <select id="fromAcct"></select>
+            <input type="number" id="fromAmt" placeholder="轉出金額" step="0.01" min="0">
+            <span class="cur-hint" id="fromCur"></span>
+          </div>
+          <div class="form-row">
+            <select id="toAcct"></select>
+            <input type="number" id="toAmt" placeholder="轉入金額" step="0.01" min="0">
+            <span class="cur-hint" id="toCur"></span>
+          </div>
+          <div class="form-row">
+            <input type="text" id="transferNote" placeholder="備註（可留空）">
+          </div>
+        </div>
+
+        <button type="submit" class="add">新增一筆</button>
+      </form>
+
+      <div id="list"></div>
+
+      <div class="chart" id="chartBox" style="display:none;">
+        <h2>本月支出分類（折台幣）</h2>
+        <div id="bars"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel-accounts">
+      <div class="balhead">
+        <h2>各帳戶餘額</h2>
+        <div class="viewtoggle" id="viewToggle2">
+          <button data-view="twd" class="active">折台幣</button>
+          <button data-view="split">原幣</button>
+        </div>
+      </div>
+      <div id="acctBalances"></div>
+    </section>
+
+    <section class="panel" id="panel-settings">
+      <div class="set-block">
+        <h3>匯率設定</h3>
+        <div class="rate-row">
+          <span>1 EUR =</span>
+          <input type="number" id="rateInput" step="0.01" min="0">
+          <span>TWD</span>
+          <button id="saveRate">儲存</button>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;">手動輸入，影響所有折台幣的顯示。</p>
+      </div>
+
+      <div class="set-block">
+        <h3>帳戶管理</h3>
+        <div id="acctList"></div>
+        <div class="newacct">
+          <input type="text" id="newAcctName" placeholder="帳戶名稱（如：荷蘭 ABN 帳戶）">
+          <select id="newAcctCur">
+            <option value="TWD">TWD 台幣</option>
+            <option value="EUR">EUR 歐元</option>
+          </select>
+          <button id="addAcct">新增</button>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -176,10 +285,10 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, serverTimestamp }
+import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc,
+  query, where, orderBy, onSnapshot, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// ▼▼▼ 把這裡換成你自己 Firebase 專案的設定 ▼▼▼
 const firebaseConfig = {
   apiKey: "AIzaSyA2bUsLwZqdwpecPuFQiaepfkflBsA5qNM",
   authDomain: "acco-b4da3.firebaseapp.com",
@@ -189,14 +298,13 @@ const firebaseConfig = {
   appId: "1:283071514602:web:9157cafed08aece6935493",
   measurementId: "G-N7STXQDR9L"
 };
-// ▲▲▲ 換完就能用 ▲▲▲
 
 const CATEGORIES = {
   expense: ["飲食", "交通", "居住", "娛樂", "醫療", "教育", "購物", "其他"],
   income: ["薪資", "獎金", "投資", "退款", "其他"]
 };
+const CUR_SYMBOL = { TWD: "NT$", EUR: "€" };
 
-// --- 若尚未填入設定，只顯示提醒 ---
 if (firebaseConfig.apiKey === "PASTE_YOUR_API_KEY") {
   document.getElementById("config-warning").style.display = "block";
   document.getElementById("login").style.display = "none";
@@ -210,12 +318,17 @@ function startApp() {
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
-  let uid = null, unsub = null, entries = [], viewDate = new Date(), curType = "expense";
+  let uid = null;
+  let unsubEntries = null, unsubAccounts = null, unsubSettings = null;
+  let entries = [], accounts = [], settings = { rate: 36, view: "twd" };
+  let viewDate = new Date(), curType = "expense", balView = "twd";
 
   const $ = id => document.getElementById(id);
-  const fmt = n => n.toLocaleString("zh-Hant");
+  const rate = () => Number(settings.rate) || 36;
+  const acctById = id => accounts.find(a => a.id === id);
+  const toTWD = (amt, cur) => cur === "EUR" ? amt * rate() : amt;
+  const fmtMoney = (n, cur) => (CUR_SYMBOL[cur] || "") + Math.round(n).toLocaleString("zh-Hant");
 
-  // auth
   $("loginBtn").onclick = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
 
   onAuthStateChanged(auth, user => {
@@ -225,59 +338,129 @@ function startApp() {
       $("app").style.display = "block";
       $("userbar").innerHTML = `<span>${user.displayName || user.email}</span>`;
       const b = document.createElement("button");
-      b.textContent = "登出";
-      b.onclick = () => signOut(auth);
+      b.textContent = "登出"; b.onclick = () => signOut(auth);
       $("userbar").appendChild(b);
-      subscribe();
+      subscribeAll();
     } else {
       uid = null;
-      if (unsub) unsub();
+      [unsubEntries, unsubAccounts, unsubSettings].forEach(u => u && u());
       $("login").style.display = "block";
       $("app").style.display = "none";
       $("userbar").innerHTML = "";
     }
   });
 
-  function subscribe() {
-    if (unsub) unsub();
-    const q = query(collection(db, "entries"), where("uid", "==", uid), orderBy("date", "desc"));
-    unsub = onSnapshot(q, snap => {
+  function subscribeAll() {
+    unsubSettings = onSnapshot(doc(db, "settings", uid), snap => {
+      if (snap.exists()) settings = { rate: 36, view: "twd", ...snap.data() };
+      $("rateInput").value = settings.rate;
+      renderAll();
+    });
+    const qa = query(collection(db, "accounts"), where("uid", "==", uid));
+    unsubAccounts = onSnapshot(qa, snap => {
+      accounts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      accounts.sort((a, b) => (a.created?.seconds || 0) - (b.created?.seconds || 0));
+      renderAll();
+    }, err => alert("帳戶讀取失敗：" + err.message));
+    const qe = query(collection(db, "entries"), where("uid", "==", uid), orderBy("date", "desc"));
+    unsubEntries = onSnapshot(qe, snap => {
       entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      render();
+      renderAll();
     }, err => alert("讀取失敗：" + err.message));
   }
 
-  // form
-  function fillCategories() {
-    const sel = $("category");
-    sel.innerHTML = "";
-    CATEGORIES[curType].forEach(c => {
-      const o = document.createElement("option");
-      o.value = c; o.textContent = c; sel.appendChild(o);
+  document.querySelectorAll(".tabs button").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      $("panel-" + btn.dataset.tab).classList.add("active");
+    };
+  });
+
+  function bindViewToggle(elId) {
+    $(elId).querySelectorAll("button").forEach(b => {
+      b.onclick = () => {
+        balView = b.dataset.view;
+        document.querySelectorAll("#viewToggle button, #viewToggle2 button").forEach(x =>
+          x.classList.toggle("active", x.dataset.view === balView));
+        renderAll();
+      };
     });
   }
+  bindViewToggle("viewToggle");
+  bindViewToggle("viewToggle2");
+
   function setType(t) {
     curType = t;
     $("tExp").classList.toggle("active", t === "expense");
     $("tInc").classList.toggle("active", t === "income");
-    fillCategories();
+    $("tTra").classList.toggle("active", t === "transfer");
+    $("normalFields").style.display = t === "transfer" ? "none" : "block";
+    $("transferFields").style.display = t === "transfer" ? "block" : "none";
+    if (t !== "transfer") fillCategories();
   }
   $("tExp").onclick = () => setType("expense");
   $("tInc").onclick = () => setType("income");
+  $("tTra").onclick = () => setType("transfer");
+
+  function fillCategories() {
+    const sel = $("category"); sel.innerHTML = "";
+    (CATEGORIES[curType] || CATEGORIES.expense).forEach(c => {
+      const o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o);
+    });
+  }
+
+  function fillAccountSelects() {
+    const opts = accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}（${a.currency}）</option>`).join("");
+    ["account", "fromAcct", "toAcct"].forEach(id => {
+      const el = $(id); const prev = el.value;
+      el.innerHTML = opts;
+      if (prev && accounts.some(a => a.id === prev)) el.value = prev;
+    });
+    updateCurHints();
+  }
+  function updateCurHints() {
+    const a = acctById($("account").value);
+    $("curHint").textContent = a ? a.currency : "";
+    const f = acctById($("fromAcct").value), t = acctById($("toAcct").value);
+    $("fromCur").textContent = f ? f.currency : "";
+    $("toCur").textContent = t ? t.currency : "";
+  }
+  ["account", "fromAcct", "toAcct"].forEach(id =>
+    document.addEventListener("change", e => { if (e.target.id === id) updateCurHints(); }));
+
   $("date").valueAsDate = new Date();
   setType("expense");
 
   $("entryForm").onsubmit = async e => {
     e.preventDefault();
-    const amount = Math.round(Number($("amount").value));
-    if (!amount || amount <= 0) return;
+    if (!accounts.length) { alert("請先到「設定」建立至少一個帳戶。"); return; }
+
+    if (curType === "transfer") {
+      const from = $("fromAcct").value, to = $("toAcct").value;
+      const fromAmt = Number($("fromAmt").value), toAmt = Number($("toAmt").value);
+      if (!from || !to) return;
+      if (from === to) { alert("轉出和轉入不能是同一個帳戶。"); return; }
+      if (!(fromAmt > 0) || !(toAmt > 0)) { alert("請填轉出與轉入金額。"); return; }
+      try {
+        await addDoc(collection(db, "entries"), {
+          uid, type: "transfer", date: $("date").value,
+          fromAcct: from, toAcct: to, fromAmt, toAmt,
+          note: $("transferNote").value.trim(), created: serverTimestamp()
+        });
+        $("fromAmt").value = ""; $("toAmt").value = ""; $("transferNote").value = "";
+      } catch (err) { alert("新增失敗：" + err.message); }
+      return;
+    }
+
+    const amount = Number($("amount").value);
+    if (!(amount > 0)) return;
     try {
       await addDoc(collection(db, "entries"), {
-        uid, type: curType, amount,
-        category: $("category").value,
-        note: $("note").value.trim(),
-        date: $("date").value,
-        created: serverTimestamp()
+        uid, type: curType, amount, accountId: $("account").value,
+        category: $("category").value, note: $("note").value.trim(),
+        date: $("date").value, created: serverTimestamp()
       });
       $("amount").value = ""; $("note").value = "";
     } catch (err) { alert("新增失敗：" + err.message); }
@@ -290,57 +473,197 @@ function startApp() {
   }
   window.__removeEntry = removeEntry;
 
-  // month nav
-  $("prevM").onclick = () => { viewDate.setMonth(viewDate.getMonth() - 1); render(); };
-  $("nextM").onclick = () => { viewDate.setMonth(viewDate.getMonth() + 1); render(); };
+  $("prevM").onclick = () => { viewDate.setMonth(viewDate.getMonth() - 1); renderAll(); };
+  $("nextM").onclick = () => { viewDate.setMonth(viewDate.getMonth() + 1); renderAll(); };
 
-  function render() {
+  $("saveRate").onclick = async () => {
+    const r = Number($("rateInput").value);
+    if (!(r > 0)) { alert("匯率要大於 0"); return; }
+    try { await setDoc(doc(db, "settings", uid), { ...settings, rate: r }, { merge: true }); }
+    catch (err) { alert("儲存失敗：" + err.message); }
+  };
+
+  $("addAcct").onclick = async () => {
+    const name = $("newAcctName").value.trim();
+    const currency = $("newAcctCur").value;
+    if (!name) { alert("請輸入帳戶名稱"); return; }
+    try {
+      await addDoc(collection(db, "accounts"), { uid, name, currency, created: serverTimestamp() });
+      $("newAcctName").value = "";
+    } catch (err) { alert("新增失敗：" + err.message); }
+  };
+  async function removeAccount(id) {
+    const used = entries.some(e => e.accountId === id || e.fromAcct === id || e.toAcct === id);
+    if (used) { alert("這個帳戶已經有記錄，不能刪除。若要刪，請先處理相關記錄。"); return; }
+    if (!confirm("刪除這個帳戶？")) return;
+    try { await deleteDoc(doc(db, "accounts", id)); }
+    catch (err) { alert("刪除失敗：" + err.message); }
+  }
+  window.__removeAccount = removeAccount;
+
+  function accountBalance(acctId) {
+    let bal = 0;
+    for (const e of entries) {
+      if (e.type === "income" && e.accountId === acctId) bal += e.amount;
+      else if (e.type === "expense" && e.accountId === acctId) bal -= e.amount;
+      else if (e.type === "transfer") {
+        if (e.fromAcct === acctId) bal -= e.fromAmt;
+        if (e.toAcct === acctId) bal += e.toAmt;
+      }
+    }
+    return bal;
+  }
+
+  function renderAll() {
+    if (!uid) return;
+    fillAccountSelects();
+    renderTotal();
+    renderSummary();
+    renderList();
+    renderChart();
+    renderAcctBalances();
+    renderAcctList();
+  }
+
+  function renderTotal() {
+    if (balView === "twd") {
+      $("totalLabel").textContent = "總資產（折台幣）";
+      let total = 0;
+      accounts.forEach(a => total += toTWD(accountBalance(a.id), a.currency));
+      $("totalVal").textContent = fmtMoney(total, "TWD");
+    } else {
+      $("totalLabel").textContent = "總資產（分幣別）";
+      const byCur = {};
+      accounts.forEach(a => byCur[a.currency] = (byCur[a.currency] || 0) + accountBalance(a.id));
+      const parts = Object.entries(byCur).map(([c, v]) => fmtMoney(v, c));
+      $("totalVal").textContent = parts.length ? parts.join("　") : "—";
+    }
+  }
+
+  function renderSummary() {
     const y = viewDate.getFullYear(), m = viewDate.getMonth();
     $("monthLabel").textContent = `${y} 年 ${m + 1} 月`;
     const prefix = `${y}-${String(m + 1).padStart(2, "0")}`;
-    const monthly = entries.filter(e => (e.date || "").startsWith(prefix));
+    const monthly = entries.filter(e => (e.date || "").startsWith(prefix) && e.type !== "transfer");
 
-    let inc = 0, exp = 0;
-    monthly.forEach(e => e.type === "income" ? inc += e.amount : exp += e.amount);
-    $("sumIn").textContent = fmt(inc);
-    $("sumOut").textContent = fmt(exp);
-    $("sumNet").textContent = fmt(inc - exp);
-
-    // list grouped by day
-    const box = $("list");
-    if (!monthly.length) {
-      box.innerHTML = `<div class="empty">這個月還沒有記錄</div>`;
+    const box = $("summaryBox");
+    if (balView === "twd") {
+      let inc = 0, exp = 0;
+      monthly.forEach(e => {
+        const a = acctById(e.accountId); const cur = a ? a.currency : "TWD";
+        const v = toTWD(e.amount, cur);
+        if (e.type === "income") inc += v; else exp += v;
+      });
+      box.innerHTML = summaryHtml(fmtMoney(inc, "TWD"), fmtMoney(exp, "TWD"), fmtMoney(inc - exp, "TWD"));
     } else {
-      const byDay = {};
-      monthly.forEach(e => { (byDay[e.date] = byDay[e.date] || []).push(e); });
-      box.innerHTML = Object.keys(byDay).sort().reverse().map(day => {
-        const rows = byDay[day].map(e => `
-          <div class="item">
-            <span class="cat">${e.category}</span>
-            <span class="note">${escapeHtml(e.note) || ""}</span>
-            <span class="amt ${e.type === "income" ? "in" : "out"}">${e.type === "income" ? "+" : "−"}${fmt(e.amount)}</span>
+      const cur = {};
+      monthly.forEach(e => {
+        const a = acctById(e.accountId); const c = a ? a.currency : "TWD";
+        cur[c] = cur[c] || { in: 0, out: 0 };
+        if (e.type === "income") cur[c].in += e.amount; else cur[c].out += e.amount;
+      });
+      const blocks = Object.entries(cur).map(([c, v]) =>
+        `<div style="margin-bottom:8px"><div class="summary-note" style="text-align:left;margin:0 0 4px">${c}</div>${summaryHtml(fmtMoney(v.in, c), fmtMoney(v.out, c), fmtMoney(v.in - v.out, c))}</div>`
+      ).join("");
+      box.innerHTML = blocks || `<div class="empty">這個月還沒有收支</div>`;
+    }
+  }
+  function summaryHtml(inTxt, outTxt, netTxt) {
+    return `<div class="summary">
+      <div class="stat in"><div class="label">收入</div><div class="num">${inTxt}</div></div>
+      <div class="stat out"><div class="label">支出</div><div class="num">${outTxt}</div></div>
+      <div class="stat"><div class="label">結餘</div><div class="num">${netTxt}</div></div>
+    </div>`;
+  }
+
+  function renderList() {
+    const y = viewDate.getFullYear(), m = viewDate.getMonth();
+    const prefix = `${y}-${String(m + 1).padStart(2, "0")}`;
+    const monthly = entries.filter(e => (e.date || "").startsWith(prefix));
+    const box = $("list");
+    if (!monthly.length) { box.innerHTML = `<div class="empty">這個月還沒有記錄</div>`; return; }
+
+    const byDay = {};
+    monthly.forEach(e => { (byDay[e.date] = byDay[e.date] || []).push(e); });
+    box.innerHTML = Object.keys(byDay).sort().reverse().map(day => {
+      const rows = byDay[day].map(e => {
+        if (e.type === "transfer") {
+          const f = acctById(e.fromAcct), t = acctById(e.toAcct);
+          const fName = f ? f.name : "?", tName = t ? t.name : "?";
+          const fCur = f ? f.currency : "", tCur = t ? t.currency : "";
+          return `<div class="item">
+            <span class="cat">轉帳</span>
+            <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${escapeHtml(fName)} → ${escapeHtml(tName)}</div></span>
+            <span class="amt tra">${fmtMoney(e.fromAmt, fCur)} → ${fmtMoney(e.toAmt, tCur)}</span>
             <button class="del" onclick="__removeEntry('${e.id}')">×</button>
-          </div>`).join("");
-        return `<div class="day-group"><div class="day-head">${day}</div>${rows}</div>`;
+          </div>`;
+        }
+        const a = acctById(e.accountId); const cur = a ? a.currency : "TWD";
+        return `<div class="item">
+          <span class="cat">${e.category}</span>
+          <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${a ? escapeHtml(a.name) : "已刪除帳戶"}</div></span>
+          <span class="amt ${e.type === "income" ? "in" : "out"}">${e.type === "income" ? "+" : "−"}${fmtMoney(e.amount, cur)}</span>
+          <button class="del" onclick="__removeEntry('${e.id}')">×</button>
+        </div>`;
+      }).join("");
+      return `<div class="day-group"><div class="day-head">${day}</div>${rows}</div>`;
+    }).join("");
+  }
+
+  function renderChart() {
+    const y = viewDate.getFullYear(), m = viewDate.getMonth();
+    const prefix = `${y}-${String(m + 1).padStart(2, "0")}`;
+    const monthly = entries.filter(e => (e.date || "").startsWith(prefix) && e.type === "expense");
+    const catSum = {};
+    monthly.forEach(e => {
+      const a = acctById(e.accountId); const cur = a ? a.currency : "TWD";
+      catSum[e.category] = (catSum[e.category] || 0) + toTWD(e.amount, cur);
+    });
+    const cats = Object.entries(catSum).sort((a, b) => b[1] - a[1]);
+    if (!cats.length) { $("chartBox").style.display = "none"; return; }
+    $("chartBox").style.display = "block";
+    const max = cats[0][1];
+    $("bars").innerHTML = cats.map(([c, v]) => `
+      <div class="bar-row">
+        <span class="bname">${c}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${(v / max * 100).toFixed(1)}%"></div></div>
+        <span class="bval">${fmtMoney(v, "TWD")}</span>
+      </div>`).join("");
+  }
+
+  function renderAcctBalances() {
+    const box = $("acctBalances");
+    if (!accounts.length) { box.innerHTML = `<div class="empty">還沒有帳戶，去「設定」新增。</div>`; return; }
+    if (balView === "twd") {
+      let total = 0;
+      const cards = accounts.map(a => {
+        const bal = accountBalance(a.id); const twd = toTWD(bal, a.currency); total += twd;
+        return acctCard(a.name, a.currency, fmtMoney(twd, "TWD"), twd < 0);
+      }).join("");
+      box.innerHTML = `<div class="total-card"><span class="tlabel">合計（折台幣）</span><span class="tval">${fmtMoney(total, "TWD")}</span></div>` + cards;
+    } else {
+      box.innerHTML = accounts.map(a => {
+        const bal = accountBalance(a.id);
+        return acctCard(a.name, a.currency, fmtMoney(bal, a.currency), bal < 0);
       }).join("");
     }
+  }
+  function acctCard(name, cur, valTxt, neg) {
+    return `<div class="acct-card">
+      <span><span class="aname">${escapeHtml(name)}</span><span class="acur">${cur}</span></span>
+      <span class="abal ${neg ? "neg" : ""}">${valTxt}</span>
+    </div>`;
+  }
 
-    // chart: expense by category
-    const catSum = {};
-    monthly.filter(e => e.type === "expense").forEach(e => catSum[e.category] = (catSum[e.category] || 0) + e.amount);
-    const cats = Object.entries(catSum).sort((a, b) => b[1] - a[1]);
-    if (cats.length) {
-      $("chartBox").style.display = "block";
-      const max = cats[0][1];
-      $("bars").innerHTML = cats.map(([c, v]) => `
-        <div class="bar-row">
-          <span class="bname">${c}</span>
-          <div class="bar-track"><div class="bar-fill" style="width:${(v / max * 100).toFixed(1)}%"></div></div>
-          <span class="bval">${fmt(v)}</span>
-        </div>`).join("");
-    } else {
-      $("chartBox").style.display = "none";
-    }
+  function renderAcctList() {
+    const box = $("acctList");
+    if (!accounts.length) { box.innerHTML = `<p style="font-size:13px;color:var(--muted)">還沒有帳戶。</p>`; return; }
+    box.innerHTML = accounts.map(a => `
+      <div class="acct-line">
+        <span class="n">${escapeHtml(a.name)}</span>
+        <span class="c">${a.currency}</span>
+        <button onclick="__removeAccount('${a.id}')">×</button>
+      </div>`).join("");
   }
 
   function escapeHtml(s) {
