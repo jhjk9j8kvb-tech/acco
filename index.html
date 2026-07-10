@@ -102,6 +102,7 @@
   .item .note { flex: 1; font-size: 14px; }
   .item .acctname { font-size: 11px; color: var(--muted); }
   .item .itime { color: var(--muted); margin-right: 6px; font-variant-numeric: tabular-nums; }
+  .item .created { font-size: 10px; color: #b3ab9d; margin-top: 1px; font-variant-numeric: tabular-nums; }
   .item .amt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
   .item .amt.in { color: var(--income); } .item .amt.out { color: var(--expense); } .item .amt.tra { color: var(--transfer); }
   .item .del { background: none; border: none; color: var(--line); cursor: pointer; font-size: 16px; padding: 0 4px; }
@@ -505,8 +506,9 @@
 
       <div class="set-block">
         <h3>版本與更新記錄</h3>
-        <p style="font-size:13px;margin-bottom:10px;">目前版本：<strong>v1.5</strong>（2026-07-11）</p>
+        <p style="font-size:13px;margin-bottom:10px;">目前版本：<strong>v1.6</strong>（2026-07-11）</p>
         <div class="changelog">
+          <div class="cl"><span class="clv">v1.6</span>每筆記錄顯示建立時間；清單同一天內改以建立時間排序（最新在最上）；CSV 匯出多帶時間與建立時間欄。</div>
           <div class="cl"><span class="clv">v1.5</span>修正收入／轉帳按鈕沒有反白的問題；歐元刷卡記錄現在可用原幣編輯；新增本更新記錄。</div>
           <div class="cl"><span class="clv">v1.4</span>記帳可用歐元輸入、自動依匯率加國外刷卡手續費換算成台幣；可設定手續費。</div>
           <div class="cl"><span class="clv">v1.3</span>每筆記帳可記錄時間（到分鐘）；趨勢頁擴充六個月摘要、每月結餘、分類走勢。</div>
@@ -517,7 +519,7 @@
         <p style="font-size:12px;color:var(--muted);margin-top:10px;">之後可能再加：跨月搜尋、匯率快速換算小工具、帳單對帳標記。</p>
       </div>
 
-      <p class="version">記帳本　v1.5</p>
+      <p class="version">記帳本　v1.6</p>
     </section>
   </main>
 </div>
@@ -623,6 +625,20 @@ function startApp() {
   const acctById = id => accounts.find(a => a.id === id);
   const toTWD = (amt, cur) => cur === "EUR" ? amt * rate() : amt;
   const fmtMoney = (n, cur) => (CUR_SYMBOL[cur] || "") + Math.round(n).toLocaleString("zh-Hant");
+  // Firestore timestamp -> JS Date (handles {seconds} or serverTimestamp not yet resolved)
+  const createdDate = e => {
+    const c = e && e.created;
+    if (c && typeof c.seconds === "number") return new Date(c.seconds * 1000);
+    if (c && typeof c.toDate === "function") return c.toDate();
+    return null;
+  };
+  const createdMs = e => { const d = createdDate(e); return d ? d.getTime() : 0; };
+  const fmtCreated = e => {
+    const d = createdDate(e);
+    if (!d) return "";
+    const p = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  };
   const cats = t => (settings.categories && settings.categories[t]) || DEFAULT_CATS[t];
   const isLiability = a => a && a.kind === "liability";
   // what to show for an account: liabilities read as a positive "amount owed"
@@ -1140,14 +1156,14 @@ function startApp() {
 
   // CSV export
   $("exportCsv").onclick = () => {
-    const header = ["日期","類型","帳戶","幣別","分類","金額","備註","轉入帳戶","轉入幣別","轉入金額"];
+    const header = ["日期","時間","類型","帳戶","幣別","分類","金額","備註","轉入帳戶","轉入幣別","轉入金額","建立時間"];
     const rows = [...entries].sort((a,b)=> (a.date>b.date?1:-1)).map(e => {
       if (e.type === "transfer") {
         const f = acctById(e.fromAcct), t = acctById(e.toAcct);
-        return [e.date,"轉帳", f?f.name:"", f?f.currency:"", "", e.fromAmt, e.note||"", t?t.name:"", t?t.currency:"", e.toAmt];
+        return [e.date, e.time||"", "轉帳", f?f.name:"", f?f.currency:"", "", e.fromAmt, e.note||"", t?t.name:"", t?t.currency:"", e.toAmt, fmtCreated(e)];
       }
       const a = acctById(e.accountId);
-      return [e.date, e.type==="income"?"收入":"支出", a?a.name:"", a?a.currency:"", e.category, e.amount, e.note||"", "", "", ""];
+      return [e.date, e.time||"", e.type==="income"?"收入":"支出", a?a.name:"", a?a.currency:"", e.category, e.amount, e.note||"", "", "", "", fmtCreated(e)];
     });
     const csv = [header, ...rows].map(r => r.map(cell => {
       const s = String(cell ?? "");
@@ -1295,16 +1311,22 @@ function startApp() {
     const byDay = {};
     monthly.forEach(e => { (byDay[e.date] = byDay[e.date] || []).push(e); });
     box.innerHTML = Object.keys(byDay).sort().reverse().map(day => {
-      const dayItems = byDay[day].sort((a, b) => (b.time || "") .localeCompare(a.time || ""));
+      // within a day, newest-created first; fall back to entered time
+      const dayItems = byDay[day].sort((a, b) => {
+        const c = createdMs(b) - createdMs(a);
+        if (c !== 0) return c;
+        return (b.time || "").localeCompare(a.time || "");
+      });
       const rows = dayItems.map(e => {
         const tm = e.time ? `<span class="itime">${e.time}</span>` : "";
+        const cr = fmtCreated(e) ? `<div class="created">建立於 ${fmtCreated(e)}</div>` : "";
         if (e.type === "transfer") {
           const f = acctById(e.fromAcct), t = acctById(e.toAcct);
           const fName = f ? f.name : "?", tName = t ? t.name : "?";
           const fCur = f ? f.currency : "", tCur = t ? t.currency : "";
           return `<div class="item" onclick="__openEdit('${e.id}')">
             <span class="cat">轉帳</span>
-            <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${tm}${escapeHtml(fName)} → ${escapeHtml(tName)}</div></span>
+            <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${tm}${escapeHtml(fName)} → ${escapeHtml(tName)}</div>${cr}</span>
             <span class="amt tra">${fmtMoney(e.fromAmt, fCur)} → ${fmtMoney(e.toAmt, tCur)}</span>
             <button class="del" onclick="event.stopPropagation();__removeEntry('${e.id}')">×</button>
           </div>`;
@@ -1312,7 +1334,7 @@ function startApp() {
         const a = acctById(e.accountId); const cur = a ? a.currency : "TWD";
         return `<div class="item" onclick="__openEdit('${e.id}')">
           <span class="cat">${escapeHtml(e.category)}</span>
-          <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${tm}${a ? escapeHtml(a.name) : "已刪除帳戶"}</div></span>
+          <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${tm}${a ? escapeHtml(a.name) : "已刪除帳戶"}</div>${cr}</span>
           <span class="amt ${e.type === "income" ? "in" : "out"}">${e.type === "income" ? "+" : "−"}${fmtMoney(e.amount, cur)}</span>
           <button class="del" onclick="event.stopPropagation();__removeEntry('${e.id}')">×</button>
         </div>`;
@@ -1667,7 +1689,7 @@ function startApp() {
         if (!rows.length) { alert("檔案是空的"); return; }
         const header = rows[0];
         const idx = h => header.indexOf(h);
-        const iDate = idx("日期"), iType = idx("類型"), iAcct = idx("帳戶"),
+        const iDate = idx("日期"), iTime = idx("時間"), iType = idx("類型"), iAcct = idx("帳戶"),
               iCat = idx("分類"), iAmt = idx("金額"), iNote = idx("備註"),
               iToAcct = idx("轉入帳戶"), iToAmt = idx("轉入金額");
         if (iDate < 0 || iType < 0) { alert("這不像本 app 匯出的 CSV（缺少日期/類型欄）。"); return; }
@@ -1678,12 +1700,13 @@ function startApp() {
           const r = rows[i];
           if (!r || !r[iDate]) continue;
           const type = r[iType];
+          const tm = iTime >= 0 ? (r[iTime] || "") : "";
           try {
             if (type === "轉帳") {
               const from = nameToId[r[iAcct]], to = nameToId[r[iToAcct]];
               if (!from || !to) { skip++; continue; }
               await addDoc(collection(db, "entries"), {
-                uid, type: "transfer", date: r[iDate], fromAcct: from, toAcct: to,
+                uid, type: "transfer", date: r[iDate], time: tm, fromAcct: from, toAcct: to,
                 fromAmt: Number(r[iAmt]) || 0, toAmt: Number(r[iToAmt]) || 0,
                 note: r[iNote] || "", created: serverTimestamp()
               });
@@ -1695,7 +1718,7 @@ function startApp() {
                 uid, type: type === "收入" ? "income" : "expense",
                 amount: Number(r[iAmt]) || 0, accountId: acctId,
                 category: r[iCat] || "其他", note: r[iNote] || "",
-                date: r[iDate], created: serverTimestamp()
+                date: r[iDate], time: tm, created: serverTimestamp()
               });
               ok++;
             }
