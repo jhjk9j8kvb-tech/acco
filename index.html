@@ -83,6 +83,7 @@
   .form .add { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 10px; font-size: 15px; cursor: pointer; width: 100%; }
   .form .add:hover { opacity: .9; }
   .cur-hint { font-size: 12px; color: var(--muted); align-self: center; }
+  .fx-preview { font-size: 12px; color: var(--accent); margin: -4px 0 10px; min-height: 16px; }
   .fav-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
   .fav-chip { font-size: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 4px 12px; cursor: pointer; }
   .fav-chip:hover { border-color: var(--accent); color: var(--accent); }
@@ -100,6 +101,7 @@
   .item .cat { font-size: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 3px 10px; color: var(--muted); white-space: nowrap; }
   .item .note { flex: 1; font-size: 14px; }
   .item .acctname { font-size: 11px; color: var(--muted); }
+  .item .itime { color: var(--muted); margin-right: 6px; font-variant-numeric: tabular-nums; }
   .item .amt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
   .item .amt.in { color: var(--income); } .item .amt.out { color: var(--expense); } .item .amt.tra { color: var(--transfer); }
   .item .del { background: none; border: none; color: var(--line); cursor: pointer; font-size: 16px; padding: 0 4px; }
@@ -193,21 +195,26 @@
 
   .version { text-align: center; font-size: 12px; color: var(--muted); letter-spacing: 1px; padding: 8px 0 20px; }
 
-  /* fixed debt banner on overview */
+  /* trend monthly net bars */
+  .mrow-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
+  .mrow-bar .ml { width: 44px; color: var(--muted); }
+  .mrow-bar .mtrack { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 4px; height: 18px; overflow: hidden; }
+  .mrow-bar .mfill { height: 100%; }
+  .mrow-bar .mfill.pos { background: var(--income); }
+  .mrow-bar .mfill.neg { background: var(--expense); }
+  .mrow-bar .mv { width: 100px; text-align: right; font-variant-numeric: tabular-nums; }
+  .mrow-bar .mv.neg { color: var(--expense); }
+
+  /* fixed debt banner on overview — quiet reminder */
   .debt-banner {
-    background: linear-gradient(135deg, #b4432f, #8f2f1f);
-    color: #fff; border-radius: 12px; padding: 18px 20px; margin-bottom: 18px;
-    box-shadow: 0 4px 14px rgba(180,67,47,.28);
+    background: #f7ede9; border: 1px solid #e6cfc7; color: #8a4433;
+    border-radius: 8px; padding: 9px 13px; margin-bottom: 14px;
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
   }
-  .debt-banner .db-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .debt-banner .db-icon {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,.22);
-    font-weight: 700; font-size: 14px; flex-shrink: 0;
-  }
-  .debt-banner .db-title { font-size: 14px; font-weight: 600; letter-spacing: .5px; }
-  .debt-banner .db-amount { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 1px; margin: 2px 0 6px; }
-  .debt-banner .db-note { font-size: 12.5px; line-height: 1.5; opacity: .92; }
+  .debt-banner .db-title { font-size: 12px; color: #a06a5c; }
+  .debt-banner .db-amount { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .debt-banner .db-note { display: none; }
+  .debt-banner .db-icon { display: none; }
 
   /* liabilities */
   .acct-card.liab { border-left: 3px solid var(--expense); }
@@ -256,12 +263,9 @@
 
     <section class="panel active" id="panel-overview">
       <div class="debt-banner">
-        <div class="db-top">
-          <span class="db-icon">！</span>
-          <span class="db-title">別忘了：這裡面有一筆借款</span>
-        </div>
-        <div class="db-amount">NT$ 150,000</div>
-        <div class="db-note">這是跟銀行借的十五萬，不是你的錢。看資產時記得心裡先扣掉它。</div>
+        <span class="db-title">借款提醒</span>
+        <span class="db-amount">NT$ 150,000</span>
+        <span class="db-title">是借來的</span>
       </div>
       <div class="ov-hero">
         <div class="greet" id="ovGreet">午安</div>
@@ -306,14 +310,20 @@
             <button type="button" id="tTra" data-type="transfer">轉帳</button>
           </div>
           <input type="date" id="date" required>
+          <input type="time" id="time" style="flex:1;min-width:90px;padding:9px 10px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:inherit;background:var(--paper);">
         </div>
 
         <div id="normalFields">
           <div class="form-row">
             <select id="account"></select>
             <input type="number" id="amount" placeholder="金額" step="0.01" min="0">
+            <select id="inputCur" style="flex:0 0 auto;min-width:70px;padding:9px 6px;border:1px solid var(--line);border-radius:6px;font-size:14px;background:var(--paper);">
+              <option value="TWD">NT$</option>
+              <option value="EUR">€</option>
+            </select>
             <span class="cur-hint" id="curHint"></span>
           </div>
+          <div class="fx-preview" id="fxPreview"></div>
           <div class="form-row">
             <select id="category"></select>
             <input type="text" id="note" placeholder="備註（可留空）">
@@ -376,6 +386,15 @@
           <span><i style="background:var(--accent)"></i>結餘</span>
         </div>
       </div>
+
+      <div class="ov-section-title">六個月摘要</div>
+      <div class="ov-grid" id="trendStats"></div>
+
+      <div class="ov-section-title">每月結餘</div>
+      <div id="trendMonths"></div>
+
+      <div class="ov-section-title">支出分類走勢（近 6 個月合計，折台幣）</div>
+      <div id="trendCats"></div>
     </section>
 
     <section class="panel" id="panel-settings">
@@ -387,6 +406,17 @@
           <span>TWD</span>
           <button id="saveRate">儲存</button>
         </div>
+      </div>
+
+      <div class="set-block">
+        <h3>國外刷卡手續費</h3>
+        <div class="rate-row">
+          <span>手續費</span>
+          <input type="number" id="fxFeeInput" step="0.1" min="0">
+          <span>%</span>
+          <button id="saveFxFee">儲存</button>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;">用台幣卡刷歐元時，記帳輸入歐元會自動用匯率＋這個手續費換算成台幣。Visa／Mastercard 多數台灣卡是 1.5%。</p>
       </div>
 
       <div class="set-block">
@@ -480,8 +510,10 @@
   <div class="modal">
     <h3>編輯記錄</h3>
     <div id="editNormal">
-      <label>日期</label>
-      <input type="date" id="eDate">
+      <div class="mrow">
+        <div><label>日期</label><input type="date" id="eDate"></div>
+        <div><label>時間</label><input type="time" id="eTime"></div>
+      </div>
       <label>帳戶</label>
       <select id="eAccount"></select>
       <label>金額</label>
@@ -492,8 +524,10 @@
       <input type="text" id="eNote">
     </div>
     <div id="editTransfer" style="display:none;">
-      <label>日期</label>
-      <input type="date" id="etDate">
+      <div class="mrow">
+        <div><label>日期</label><input type="date" id="etDate"></div>
+        <div><label>時間</label><input type="time" id="etTime"></div>
+      </div>
       <div class="mrow">
         <div><label>轉出帳戶</label><select id="eFrom"></select></div>
         <div><label>轉出金額</label><input type="number" id="eFromAmt" step="0.01" min="0"></div>
@@ -552,7 +586,7 @@ function startApp() {
   let uid = null;
   let unsubEntries = null, unsubAccounts = null, unsubSettings = null;
   let entries = [], accounts = [];
-  let settings = { rate: 36, budget: 0, categories: DEFAULT_CATS, favorites: [], recurring: [], sortMode: "created", acctOrder: [] };
+  let settings = { rate: 36, budget: 0, categories: DEFAULT_CATS, favorites: [], recurring: [], sortMode: "created", acctOrder: [], fxFee: 1.5 };
   let viewDate = new Date(), curType = "expense", balView = "twd";
   let filter = { search: "", type: "", account: "" };
   let editingId = null;
@@ -561,6 +595,7 @@ function startApp() {
 
   const $ = id => document.getElementById(id);
   const rate = () => Number(settings.rate) || 36;
+  const fxFee = () => { const f = Number(settings.fxFee); return isNaN(f) ? 1.5 : f; };
   const acctById = id => accounts.find(a => a.id === id);
   const toTWD = (amt, cur) => cur === "EUR" ? amt * rate() : amt;
   const fmtMoney = (n, cur) => (CUR_SYMBOL[cur] || "") + Math.round(n).toLocaleString("zh-Hant");
@@ -568,6 +603,24 @@ function startApp() {
   const isLiability = a => a && a.kind === "liability";
   // what to show for an account: liabilities read as a positive "amount owed"
   const displayBal = (a, bal) => isLiability(a) ? Math.abs(bal) : bal;
+
+  // Convert an amount typed in `inCur` into the account's currency `acctCur`.
+  // Foreign-card fee applies only when TWD account is charged for a EUR purchase.
+  // Returns { amount, fx } where fx describes the conversion for the note/record.
+  function convertToAccount(rawAmt, inCur, acctCur) {
+    if (inCur === acctCur) return { amount: rawAmt, fx: null };
+    const r = rate(), fee = fxFee();
+    if (inCur === "EUR" && acctCur === "TWD") {
+      const amount = rawAmt * r * (1 + fee / 100);
+      return { amount, fx: { origAmt: rawAmt, origCur: "EUR", rate: r, fee, note: `€${rawAmt} @${r}${fee ? " +" + fee + "%" : ""}` } };
+    }
+    if (inCur === "TWD" && acctCur === "EUR") {
+      // reverse (rare): TWD typed, EUR account — no card fee assumed
+      const amount = rawAmt / r;
+      return { amount, fx: { origAmt: rawAmt, origCur: "TWD", rate: r, fee: 0, note: `NT$${rawAmt} @${r}` } };
+    }
+    return { amount: rawAmt, fx: null };
+  }
 
   // display order for accounts, shared by all views
   const CUR_RANK = { TWD: 0, EUR: 1 };
@@ -628,11 +681,13 @@ function startApp() {
         favorites: d.favorites ?? [],
         recurring: d.recurring ?? [],
         sortMode: d.sortMode ?? "created",
-        acctOrder: d.acctOrder ?? []
+        acctOrder: d.acctOrder ?? [],
+        fxFee: d.fxFee ?? 1.5
       };
       const sm = $("sortMode"); if (sm) sm.value = settings.sortMode;
       $("rateInput").value = settings.rate;
       $("budgetInput").value = settings.budget;
+      const ff = $("fxFeeInput"); if (ff) ff.value = settings.fxFee;
       renderAll();
       loaded.settings = true; maybeRunRecurring();
     });
@@ -717,19 +772,53 @@ function startApp() {
     });
     const fOpts = `<option value="">全部帳戶</option>` + opts;
     const fa = $("fAccount"); const fprev = fa.value; fa.innerHTML = fOpts; fa.value = fprev;
+    // seed input currency once, when nothing is chosen yet
+    if (!$("inputCur").dataset.touched) syncInputCurToAccount();
     updateCurHints();
+  }
+  function curLabel(a) {
+    if (!a) return "";
+    return a.currency === "EUR" ? "€ 歐元" : "NT$ 台幣";
   }
   function updateCurHints() {
     const a = acctById($("account").value);
-    $("curHint").textContent = a ? a.currency : "";
+    $("curHint").textContent = "";
     const f = acctById($("fromAcct").value), t = acctById($("toAcct").value);
-    $("fromCur").textContent = f ? f.currency : "";
-    $("toCur").textContent = t ? t.currency : "";
+    $("fromCur").textContent = curLabel(f);
+    $("toCur").textContent = curLabel(t);
+    updateFxPreview();
   }
+
+  // when the account changes, default the input currency to that account's currency
+  function syncInputCurToAccount() {
+    const a = acctById($("account").value);
+    if (a) $("inputCur").value = a.currency;
+    updateFxPreview();
+  }
+
+  function updateFxPreview() {
+    const box = $("fxPreview"); if (!box) return;
+    const a = acctById($("account").value);
+    const raw = Number($("amount").value);
+    const inCur = $("inputCur").value;
+    if (!a || !(raw > 0)) { box.textContent = ""; return; }
+    if (inCur === a.currency) { box.textContent = ""; return; }
+    const { amount, fx } = convertToAccount(raw, inCur, a.currency);
+    if (!fx) { box.textContent = ""; return; }
+    box.textContent = `≈ ${fmtMoney(amount, a.currency)}　（${fx.note}，記入「${a.name}」）`;
+  }
+
   ["account", "fromAcct", "toAcct"].forEach(id =>
-    document.addEventListener("change", e => { if (e.target.id === id) updateCurHints(); }));
+    document.addEventListener("change", e => { if (e.target.id === id) { if (id === "account") { $("inputCur").dataset.touched = "1"; syncInputCurToAccount(); } updateCurHints(); } }));
+  $("inputCur").addEventListener("change", () => { $("inputCur").dataset.touched = "1"; updateFxPreview(); });
+  $("amount").addEventListener("input", updateFxPreview);
 
   $("date").valueAsDate = new Date();
+  function setNowTime() {
+    const d = new Date();
+    $("time").value = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  }
+  setNowTime();
   setType("expense");
   fillCategories($("recCategory"), "expense");
 
@@ -754,23 +843,30 @@ function startApp() {
       if (!(fromAmt > 0) || !(toAmt > 0)) { alert("請填轉出與轉入金額。"); return; }
       try {
         await addDoc(collection(db, "entries"), {
-          uid, type: "transfer", date: $("date").value,
+          uid, type: "transfer", date: $("date").value, time: $("time").value || "",
           fromAcct: from, toAcct: to, fromAmt, toAmt,
           note: $("transferNote").value.trim(), created: serverTimestamp()
         });
-        $("fromAmt").value = ""; $("toAmt").value = ""; $("transferNote").value = "";
+        $("fromAmt").value = ""; $("toAmt").value = ""; $("transferNote").value = ""; setNowTime();
       } catch (err) { alert("新增失敗：" + err.message); }
       return;
     }
-    const amount = Number($("amount").value);
-    if (!(amount > 0)) return;
+    const rawAmount = Number($("amount").value);
+    if (!(rawAmount > 0)) return;
+    const acct = acctById($("account").value);
+    const inCur = $("inputCur").value;
+    const conv = convertToAccount(rawAmount, inCur, acct ? acct.currency : "TWD");
+    let note = $("note").value.trim();
+    if (conv.fx) note = note ? `${note}（${conv.fx.note}）` : conv.fx.note;
+    const rec = {
+      uid, type: curType, amount: conv.amount, accountId: $("account").value,
+      category: $("category").value, note,
+      date: $("date").value, time: $("time").value || "", created: serverTimestamp()
+    };
+    if (conv.fx) { rec.origAmt = conv.fx.origAmt; rec.origCur = conv.fx.origCur; rec.fxRate = conv.fx.rate; rec.fxFee = conv.fx.fee; }
     try {
-      await addDoc(collection(db, "entries"), {
-        uid, type: curType, amount, accountId: $("account").value,
-        category: $("category").value, note: $("note").value.trim(),
-        date: $("date").value, created: serverTimestamp()
-      });
-      $("amount").value = ""; $("note").value = "";
+      await addDoc(collection(db, "entries"), rec);
+      $("amount").value = ""; $("note").value = ""; setNowTime(); updateFxPreview();
     } catch (err) { alert("新增失敗：" + err.message); }
   };
 
@@ -790,6 +886,7 @@ function startApp() {
       $("editNormal").style.display = "none";
       $("editTransfer").style.display = "block";
       $("etDate").value = e.date;
+      $("etTime").value = e.time || "";
       fillCategories; // no-op
       $("eFrom").value = e.fromAcct; $("eTo").value = e.toAcct;
       $("eFromAmt").value = e.fromAmt; $("eToAmt").value = e.toAmt;
@@ -798,6 +895,7 @@ function startApp() {
       $("editNormal").style.display = "block";
       $("editTransfer").style.display = "none";
       $("eDate").value = e.date;
+      $("eTime").value = e.time || "";
       $("eAccount").value = e.accountId;
       $("eAmount").value = e.amount;
       fillCategories($("eCategory"), e.type, e.category);
@@ -820,14 +918,14 @@ function startApp() {
         if (from === to) { alert("轉出和轉入不能同一帳戶"); return; }
         if (!(fA > 0) || !(tA > 0)) { alert("金額要大於 0"); return; }
         await updateDoc(doc(db, "entries", editingId), {
-          date: $("etDate").value, fromAcct: from, toAcct: to,
+          date: $("etDate").value, time: $("etTime").value || "", fromAcct: from, toAcct: to,
           fromAmt: fA, toAmt: tA, note: $("etNote").value.trim()
         });
       } else {
         const amt = Number($("eAmount").value);
         if (!(amt > 0)) { alert("金額要大於 0"); return; }
         await updateDoc(doc(db, "entries", editingId), {
-          date: $("eDate").value, accountId: $("eAccount").value,
+          date: $("eDate").value, time: $("eTime").value || "", accountId: $("eAccount").value,
           amount: amt, category: $("eCategory").value, note: $("eNote").value.trim()
         });
       }
@@ -842,6 +940,11 @@ function startApp() {
     const r = Number($("rateInput").value);
     if (!(r > 0)) { alert("匯率要大於 0"); return; }
     saveSettings({ rate: r });
+  };
+  $("saveFxFee").onclick = () => {
+    const f = Number($("fxFeeInput").value);
+    if (f < 0 || isNaN(f)) { alert("手續費不能小於 0"); return; }
+    saveSettings({ fxFee: f });
   };
   $("saveBudget").onclick = () => {
     const b = Number($("budgetInput").value);
@@ -1122,14 +1225,16 @@ function startApp() {
     const byDay = {};
     monthly.forEach(e => { (byDay[e.date] = byDay[e.date] || []).push(e); });
     box.innerHTML = Object.keys(byDay).sort().reverse().map(day => {
-      const rows = byDay[day].map(e => {
+      const dayItems = byDay[day].sort((a, b) => (b.time || "") .localeCompare(a.time || ""));
+      const rows = dayItems.map(e => {
+        const tm = e.time ? `<span class="itime">${e.time}</span>` : "";
         if (e.type === "transfer") {
           const f = acctById(e.fromAcct), t = acctById(e.toAcct);
           const fName = f ? f.name : "?", tName = t ? t.name : "?";
           const fCur = f ? f.currency : "", tCur = t ? t.currency : "";
           return `<div class="item" onclick="__openEdit('${e.id}')">
             <span class="cat">轉帳</span>
-            <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${escapeHtml(fName)} → ${escapeHtml(tName)}</div></span>
+            <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${tm}${escapeHtml(fName)} → ${escapeHtml(tName)}</div></span>
             <span class="amt tra">${fmtMoney(e.fromAmt, fCur)} → ${fmtMoney(e.toAmt, tCur)}</span>
             <button class="del" onclick="event.stopPropagation();__removeEntry('${e.id}')">×</button>
           </div>`;
@@ -1137,7 +1242,7 @@ function startApp() {
         const a = acctById(e.accountId); const cur = a ? a.currency : "TWD";
         return `<div class="item" onclick="__openEdit('${e.id}')">
           <span class="cat">${escapeHtml(e.category)}</span>
-          <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${a ? escapeHtml(a.name) : "已刪除帳戶"}</div></span>
+          <span class="note">${escapeHtml(e.note) || ""}<div class="acctname">${tm}${a ? escapeHtml(a.name) : "已刪除帳戶"}</div></span>
           <span class="amt ${e.type === "income" ? "in" : "out"}">${e.type === "income" ? "+" : "−"}${fmtMoney(e.amount, cur)}</span>
           <button class="del" onclick="event.stopPropagation();__removeEntry('${e.id}')">×</button>
         </div>`;
@@ -1350,6 +1455,55 @@ function startApp() {
       ${line("net", "#3a5a78")}
       ${xLabels}
     </svg>`;
+
+    // ---- 6-month summary stats ----
+    const totIn = data.reduce((s, d) => s + d.inc, 0);
+    const totOut = data.reduce((s, d) => s + d.exp, 0);
+    const totNet = totIn - totOut;
+    const activeMonths = data.filter(d => d.inc || d.exp).length || 1;
+    const avgOut = totOut / activeMonths;
+    const saveRate = totIn > 0 ? Math.round(totNet / totIn * 100) : 0;
+    const best = data.reduce((b, d) => d.net > b.net ? d : b, data[0]);
+    if ($("trendStats")) $("trendStats").innerHTML = `
+      <div class="ov-cell"><div class="l">六月總收入</div><div class="v pos">${fmtMoney(totIn,"TWD")}</div></div>
+      <div class="ov-cell"><div class="l">六月總支出</div><div class="v">${fmtMoney(totOut,"TWD")}</div><div class="sub">平均每月 ${fmtMoney(avgOut,"TWD")}</div></div>
+      <div class="ov-cell"><div class="l">六月淨結餘</div><div class="v ${totNet>=0?"pos":"neg"}">${fmtMoney(totNet,"TWD")}</div><div class="sub">儲蓄率 ${saveRate}%</div></div>
+      <div class="ov-cell"><div class="l">結餘最好的月</div><div class="v">${best.label}</div><div class="sub">${fmtMoney(best.net,"TWD")}</div></div>`;
+
+    // ---- monthly net bars (diverging) ----
+    if ($("trendMonths")) {
+      const maxAbs = Math.max(1, ...data.map(d => Math.abs(d.net)));
+      $("trendMonths").innerHTML = data.slice().reverse().map(d => {
+        const pct = Math.abs(d.net) / maxAbs * 100;
+        const pos = d.net >= 0;
+        return `<div class="mrow-bar">
+          <span class="ml">${d.label}</span>
+          <div class="mtrack"><div class="mfill ${pos?"pos":"neg"}" style="width:${pct}%"></div></div>
+          <span class="mv ${pos?"":"neg"}">${pos?"+":"−"}${fmtMoney(Math.abs(d.net),"TWD")}</span>
+        </div>`;
+      }).join("");
+    }
+
+    // ---- category trend over 6 months ----
+    if ($("trendCats")) {
+      const prefixes = months.map(mo => mo.prefix);
+      const catSum = {};
+      entries.filter(e => e.type === "expense" && prefixes.some(p => (e.date||"").startsWith(p))).forEach(e => {
+        const a = acctById(e.accountId); const v = toTWD(e.amount, a ? a.currency : "TWD");
+        catSum[e.category] = (catSum[e.category] || 0) + v;
+      });
+      const list = Object.entries(catSum).sort((a,b)=>b[1]-a[1]);
+      if (!list.length) { $("trendCats").innerHTML = `<div class="empty">近六個月還沒有支出記錄</div>`; }
+      else {
+        const max = list[0][1];
+        $("trendCats").innerHTML = list.map(([c,v]) => `
+          <div class="bar-row">
+            <span class="bname">${escapeHtml(c)}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${(v/max*100).toFixed(1)}%"></div></div>
+            <span class="bval">${fmtMoney(v,"TWD")}</span>
+          </div>`).join("");
+      }
+    }
   }
 
   // ---- recurring rules ----
