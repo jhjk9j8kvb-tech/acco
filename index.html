@@ -193,6 +193,22 @@
 
   .version { text-align: center; font-size: 12px; color: var(--muted); letter-spacing: 1px; padding: 8px 0 20px; }
 
+  /* fixed debt banner on overview */
+  .debt-banner {
+    background: linear-gradient(135deg, #b4432f, #8f2f1f);
+    color: #fff; border-radius: 12px; padding: 18px 20px; margin-bottom: 18px;
+    box-shadow: 0 4px 14px rgba(180,67,47,.28);
+  }
+  .debt-banner .db-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .debt-banner .db-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,.22);
+    font-weight: 700; font-size: 14px; flex-shrink: 0;
+  }
+  .debt-banner .db-title { font-size: 14px; font-weight: 600; letter-spacing: .5px; }
+  .debt-banner .db-amount { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 1px; margin: 2px 0 6px; }
+  .debt-banner .db-note { font-size: 12.5px; line-height: 1.5; opacity: .92; }
+
   /* liabilities */
   .acct-card.liab { border-left: 3px solid var(--expense); }
   .acct-card.liab .abal { color: var(--expense); }
@@ -239,6 +255,14 @@
     </div>
 
     <section class="panel active" id="panel-overview">
+      <div class="debt-banner">
+        <div class="db-top">
+          <span class="db-icon">！</span>
+          <span class="db-title">別忘了：這裡面有一筆借款</span>
+        </div>
+        <div class="db-amount">NT$ 150,000</div>
+        <div class="db-note">這是跟銀行借的十五萬，不是你的錢。看資產時記得心裡先扣掉它。</div>
+      </div>
       <div class="ov-hero">
         <div class="greet" id="ovGreet">午安</div>
         <div class="msg" id="ovMsg"></div>
@@ -1558,78 +1582,109 @@ function startApp() {
       return pickOfDay([
         "還沒有任何記錄。先從今天的一杯咖啡、一趟車錢開始吧，起頭最難，而你已經打開它了。",
         "空空的帳本也是一種開始。今天花的第一筆，就記下來看看。",
-        "記帳不必從完美開始，只要從今天開始。"
+        "記帳不必從完美開始，只要從今天開始。",
+        "第一筆最難下手，但也最有意義。今天就記一筆吧。",
+        "在異鄉照顧好自己的錢，是件溫柔的事。從今天起頭。"
       ]);
     }
 
     const parts = [];
 
     // streak
-    if (x.streak >= 30) parts.push(pickOfDay([
+    if (x.streak >= 60) parts.push(pickOfDay([
+      `連續記帳 ${x.streak} 天。這種堅持，很多人一輩子都做不到。`,
+      `${x.streak} 天了，你早就不是在「努力記帳」，而是在好好生活。`,
+      `兩個月不間斷。這份自律，會在你看不見的地方回報你。`
+    ], 1));
+    else if (x.streak >= 30) parts.push(pickOfDay([
       `連續記帳 ${x.streak} 天。這已經不是毅力了，是你生活的一部分。`,
-      `${x.streak} 天不間斷。你對自己的日子，是真的上心。`
+      `${x.streak} 天不間斷。你對自己的日子，是真的上心。`,
+      `滿一個月了。你把一件小事做成了習慣，這很了不起。`,
+      `${x.streak} 天。回頭看，你會謝謝現在這麼認真的自己。`
     ], 1));
     else if (x.streak >= 14) parts.push(pickOfDay([
       `連著記了 ${x.streak} 天，兩個禮拜了。這種穩定，比任何一次大改變都可靠。`,
-      `${x.streak} 天了。習慣一旦長成，往後就不太需要用力。`
+      `${x.streak} 天了。習慣一旦長成，往後就不太需要用力。`,
+      `半個月不斷。你正在把「記帳」變成不用想的事。`,
+      `${x.streak} 天。慢慢來，但你從沒停下，這就夠好了。`
     ], 1));
     else if (x.streak >= 7) parts.push(pickOfDay([
       `連續記帳 ${x.streak} 天了，這份細心在異鄉特別難得。`,
       `整整 ${x.streak} 天。你比自己以為的更有定性。`,
-      `${x.streak} 天沒斷過，這股慣性會替你撐住接下來的日子。`
+      `${x.streak} 天沒斷過，這股慣性會替你撐住接下來的日子。`,
+      `一週了。看似平凡的堅持，其實最難得。`,
+      `${x.streak} 天。你正在用行動，把生活握在自己手裡。`
     ], 1));
     else if (x.streak >= 3) parts.push(pickOfDay([
       `已經連著記了 ${x.streak} 天，習慣正在長出來。`,
-      `${x.streak} 天。別小看這股慣性，它正在成形。`
+      `${x.streak} 天。別小看這股慣性，它正在成形。`,
+      `連續 ${x.streak} 天了，你已經踏出最難的那幾步。`,
+      `${x.streak} 天。好的開始，往往就長這樣。`
     ], 1));
     else if (x.streak === 0) parts.push(pickOfDay([
       "有幾天沒記了，沒關係。今天補上就好，帳本不會怪你。",
-      "斷了就從今天接回來，記帳從來不是考試。"
+      "斷了就從今天接回來，記帳從來不是考試。",
+      "漏了幾天不要緊，重要的是你又回來了。",
+      "生活忙起來難免中斷，能想起來記，就已經很棒。"
     ], 1));
 
     // month over month
     if (x.expLast > 0 && x.diff < 0) parts.push(pickOfDay([
       `這個月比上個月省下了 ${M(-x.diff, "TWD")}，你把錢花在更要緊的地方了。`,
       `支出比上月少了 ${M(-x.diff, "TWD")}。克制不是委屈自己，是替未來留餘地。`,
-      `比上個月省了 ${M(-x.diff, "TWD")}，這種小小的收斂，日子久了很有份量。`
+      `比上個月省了 ${M(-x.diff, "TWD")}，這種小小的收斂，日子久了很有份量。`,
+      `這個月少花了 ${M(-x.diff, "TWD")}。你正在越來越懂自己要什麼。`,
+      `支出下降了 ${M(-x.diff, "TWD")}，這是你替回家那天多存的一點。`
     ], 2));
     else if (x.expLast > 0 && x.diff > 0) parts.push(pickOfDay([
       "這個月花得比上個月多一些。不必焦慮，看清楚錢的去向，本身就是一種掌控。",
       `支出多了 ${M(x.diff, "TWD")}。有些月份本來就該多花一點，記下來就好。`,
-      "花得多了些，但你知道花在哪裡——這比省下多少更重要。"
+      "花得多了些，但你知道花在哪裡——這比省下多少更重要。",
+      `這個月多花了 ${M(x.diff, "TWD")}。偶爾對自己好一點，不是壞事。`,
+      "支出上升了些，別急著自責。看得見，就能調整。"
     ], 2));
 
     // this month net
     if (x.netThis > 0) parts.push(pickOfDay([
       `本月結餘 ${M(x.netThis, "TWD")}，一點一點累積，回家時會是一筆踏實的底氣。`,
       `這個月存下了 ${M(x.netThis, "TWD")}。異鄉的每一塊錢，都是你自己掙來的。`,
-      `結餘 ${M(x.netThis, "TWD")}。不必比較快慢，往前就好。`
+      `結餘 ${M(x.netThis, "TWD")}。不必比較快慢，往前就好。`,
+      `這個月多了 ${M(x.netThis, "TWD")} 的餘裕。你的辛苦正在變成看得見的數字。`,
+      `結餘 ${M(x.netThis, "TWD")}。存下的不只是錢，是你回家後的選擇權。`
     ], 3));
     else if (x.netThis < 0) parts.push(pickOfDay([
       "這個月支出多過收入，有時是必要的投入。記下來，下個月會更清楚該怎麼調整。",
       "收支暫時是負的。別急著責怪自己，先看看錢去了哪裡。",
-      "這個月透支了些。生活本來就有高低，帳本的用處是讓你看得見。"
+      "這個月透支了些。生活本來就有高低，帳本的用處是讓你看得見。",
+      "剛到異鄉、剛安頓，花得多很正常。穩住陣腳，之後會回穩。",
+      "這個月是負的，但你有記下來——這代表你沒有逃避，很好。"
     ], 3));
 
-    // liabilities
+    // liabilities (generic, in addition to the fixed banner)
     if (x.hasLiab && x.liabTWD > 0) {
       const covered = x.assetTWD >= x.liabTWD;
       parts.push(covered
         ? pickOfDay([
             `還欠 ${M(x.liabTWD, "TWD")}，但你的資產已經蓋得過它了。穩住就好。`,
-            `負債 ${M(x.liabTWD, "TWD")} 還在，不過你手上的錢撐得住，不用慌。`
+            `負債 ${M(x.liabTWD, "TWD")} 還在，不過你手上的錢撐得住，不用慌。`,
+            `債務在掌控之中。你不是被錢追著跑，是你在管它。`
           ], 4)
         : pickOfDay([
             `目前還欠 ${M(x.liabTWD, "TWD")}。慢慢還，數字會往下走的。`,
             `負債 ${M(x.liabTWD, "TWD")}。看著它一點點變小，也是一種踏實。`,
-            `欠的還沒還完，但你正在面對它。這件事本身就不容易。`
+            `欠的還沒還完，但你正在面對它。這件事本身就不容易。`,
+            `這趟出來，有一部分就是為了把這筆還掉。你正走在路上。`,
+            `債還在，但每還一筆，你就離自由近一點。`
           ], 4));
     }
 
     if (!parts.length) parts.push(pickOfDay([
       "穩穩地記，穩穩地過。你在照顧自己的生活，這件事值得肯定。",
       "今天也記了帳。這樣就很好。",
-      "數字之外，你也在整理自己的日子。"
+      "數字之外，你也在整理自己的日子。",
+      "一筆一筆記下來的，是你認真活著的證據。",
+      "在離家這麼遠的地方，還願意好好管錢，你真的很成熟。",
+      "帳本會陪你走完這趟。有它在，你不會迷路。"
     ], 5));
 
     return parts.join("　");
