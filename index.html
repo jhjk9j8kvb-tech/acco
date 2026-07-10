@@ -190,6 +190,29 @@
   .rec-add .addbtn { grid-column: 1 / -1; background: var(--ink); color: #fff; border: none; border-radius: 6px; padding: 9px; cursor: pointer; }
   .rec-hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
   .auto-tag { font-size: 10px; background: var(--accent); color: #fff; border-radius: 10px; padding: 1px 6px; margin-left: 6px; }
+
+  .version { text-align: center; font-size: 12px; color: var(--muted); letter-spacing: 1px; padding: 8px 0 20px; }
+
+  /* liabilities */
+  .acct-card.liab { border-left: 3px solid var(--expense); }
+  .acct-card.liab .abal { color: var(--expense); }
+  .kind-tag { font-size: 10px; border-radius: 10px; padding: 1px 7px; margin-left: 6px; border: 1px solid var(--line); color: var(--muted); }
+  .kind-tag.liab { background: var(--expense); color: #fff; border-color: var(--expense); }
+  .sec-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; margin: 16px 0 8px; }
+  .net-card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .net-card .nl { font-size: 13px; color: var(--muted); }
+  .net-card .nv { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 17px; }
+  .net-card .nv.neg { color: var(--expense); }
+  .net-card .nv.liab { color: var(--expense); }
+
+  /* account sorting */
+  .acct-line.draggable { cursor: grab; }
+  .acct-line.dragging { opacity: .4; }
+  .acct-line.dragover { border-top: 2px solid var(--accent); }
+  .drag-handle { color: var(--line); font-size: 16px; cursor: grab; user-select: none; padding: 0 2px; }
+  .drag-handle:hover { color: var(--muted); }
+  .move-btns { display: flex; flex-direction: column; gap: 0; }
+  .move-btns button { line-height: 1; padding: 0 4px; font-size: 11px; }
 </style>
 </head>
 <body>
@@ -367,10 +390,24 @@
 
       <div class="set-block">
         <h3>帳戶管理</h3>
+        <div class="rate-row" style="margin-bottom:12px;">
+          <span style="font-size:13px;">排序方式</span>
+          <select id="sortMode" style="flex:1;padding:8px;border:1px solid var(--line);border-radius:6px;font-size:14px;">
+            <option value="created">建立時間</option>
+            <option value="custom">自訂順序（可拖曳）</option>
+            <option value="balDesc">餘額高到低（依幣別分組）</option>
+            <option value="balAsc">餘額低到高（依幣別分組）</option>
+          </select>
+        </div>
         <div id="acctList"></div>
+        <p id="sortHint" style="font-size:12px;color:var(--muted);margin-top:8px;"></p>
         <div class="newacct">
           <input type="text" id="newAcctName" placeholder="帳戶名稱（如：荷蘭 ABN 帳戶）">
           <select id="newAcctCur"><option value="TWD">TWD 台幣</option><option value="EUR">EUR 歐元</option></select>
+          <select id="newAcctKind" style="flex:1;min-width:90px;padding:8px;border:1px solid var(--line);border-radius:6px;font-size:14px;">
+            <option value="asset">資產</option>
+            <option value="liability">負債（借款）</option>
+          </select>
           <input type="number" id="newAcctOpen" placeholder="初始餘額（可留空）" step="0.01" style="flex:2;min-width:120px;padding:8px;border:1px solid var(--line);border-radius:6px;font-size:14px;">
           <button id="addAcct">新增</button>
         </div>
@@ -408,6 +445,8 @@
         <h3>常用記錄</h3>
         <div id="favList"></div>
       </div>
+
+      <p class="version">記帳本　v1.0</p>
     </section>
   </main>
 </div>
@@ -489,7 +528,7 @@ function startApp() {
   let uid = null;
   let unsubEntries = null, unsubAccounts = null, unsubSettings = null;
   let entries = [], accounts = [];
-  let settings = { rate: 36, budget: 0, categories: DEFAULT_CATS, favorites: [], recurring: [] };
+  let settings = { rate: 36, budget: 0, categories: DEFAULT_CATS, favorites: [], recurring: [], sortMode: "created", acctOrder: [] };
   let viewDate = new Date(), curType = "expense", balView = "twd";
   let filter = { search: "", type: "", account: "" };
   let editingId = null;
@@ -502,6 +541,36 @@ function startApp() {
   const toTWD = (amt, cur) => cur === "EUR" ? amt * rate() : amt;
   const fmtMoney = (n, cur) => (CUR_SYMBOL[cur] || "") + Math.round(n).toLocaleString("zh-Hant");
   const cats = t => (settings.categories && settings.categories[t]) || DEFAULT_CATS[t];
+  const isLiability = a => a && a.kind === "liability";
+  // what to show for an account: liabilities read as a positive "amount owed"
+  const displayBal = (a, bal) => isLiability(a) ? Math.abs(bal) : bal;
+
+  // display order for accounts, shared by all views
+  const CUR_RANK = { TWD: 0, EUR: 1 };
+  function sortedAccounts() {
+    const list = [...accounts];
+    const mode = settings.sortMode || "created";
+    if (mode === "custom") {
+      const order = settings.acctOrder || [];
+      return list.sort((a, b) => {
+        const ia = order.indexOf(a.id), ib = order.indexOf(b.id);
+        if (ia === -1 && ib === -1) return (a.created?.seconds||0) - (b.created?.seconds||0);
+        if (ia === -1) return 1;   // new accounts fall to the end
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+    }
+    if (mode === "balDesc" || mode === "balAsc") {
+      // group by currency first, then by balance within the group
+      return list.sort((a, b) => {
+        const ca = CUR_RANK[a.currency] ?? 99, cb = CUR_RANK[b.currency] ?? 99;
+        if (ca !== cb) return ca - cb;
+        const ba = accountBalance(a.id), bb = accountBalance(b.id);
+        return mode === "balDesc" ? bb - ba : ba - bb;
+      });
+    }
+    return list.sort((a, b) => (a.created?.seconds||0) - (b.created?.seconds||0));
+  }
 
   $("loginBtn").onclick = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
 
@@ -533,8 +602,11 @@ function startApp() {
         budget: d.budget ?? 0,
         categories: d.categories ?? DEFAULT_CATS,
         favorites: d.favorites ?? [],
-        recurring: d.recurring ?? []
+        recurring: d.recurring ?? [],
+        sortMode: d.sortMode ?? "created",
+        acctOrder: d.acctOrder ?? []
       };
+      const sm = $("sortMode"); if (sm) sm.value = settings.sortMode;
       $("rateInput").value = settings.rate;
       $("budgetInput").value = settings.budget;
       renderAll();
@@ -613,7 +685,7 @@ function startApp() {
   }
 
   function fillAccountSelects() {
-    const opts = accounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}（${a.currency}）</option>`).join("");
+    const opts = sortedAccounts().map(a => `<option value="${a.id}">${escapeHtml(a.name)}（${a.currency}）</option>`).join("");
     ["account", "fromAcct", "toAcct", "eAccount", "eFrom", "eTo", "recAccount"].forEach(id => {
       const el = $(id); if (!el) return; const prev = el.value;
       el.innerHTML = opts;
@@ -780,10 +852,13 @@ function startApp() {
   $("addAcct").onclick = async () => {
     const name = $("newAcctName").value.trim();
     const currency = $("newAcctCur").value;
-    const opening = Number($("newAcctOpen").value) || 0;
+    const kind = $("newAcctKind").value;
+    const raw = Number($("newAcctOpen").value) || 0;
+    // liabilities are entered as a positive "amount owed" but stored negative
+    const opening = kind === "liability" ? -Math.abs(raw) : raw;
     if (!name) { alert("請輸入帳戶名稱"); return; }
     try {
-      await addDoc(collection(db, "accounts"), { uid, name, currency, opening, created: serverTimestamp() });
+      await addDoc(collection(db, "accounts"), { uid, name, currency, kind, opening, created: serverTimestamp() });
       $("newAcctName").value = ""; $("newAcctOpen").value = "";
     } catch (err) { alert("新增失敗：" + err.message); }
   };
@@ -808,15 +883,32 @@ function startApp() {
   window.__renameAccount = renameAccount;
   async function editOpening(id) {
     const a = acctById(id); if (!a) return;
-    const cur = a.opening != null ? a.opening : 0;
-    const v = prompt(`「${a.name}」的初始餘額（${a.currency}）：`, cur);
+    const liab = isLiability(a);
+    const shown = liab ? Math.abs(a.opening || 0) : (a.opening || 0);
+    const label = liab
+      ? `「${a.name}」一開始欠多少？（${a.currency}，填正數）：`
+      : `「${a.name}」的初始餘額（${a.currency}）：`;
+    const v = prompt(label, shown);
     if (v === null) return;
     const n = Number(v);
     if (isNaN(n)) { alert("請輸入數字"); return; }
-    try { await updateDoc(doc(db, "accounts", id), { opening: n }); }
+    const opening = liab ? -Math.abs(n) : n;
+    try { await updateDoc(doc(db, "accounts", id), { opening }); }
     catch (err) { alert("儲存失敗：" + err.message); }
   }
   window.__editOpening = editOpening;
+
+  async function toggleKind(id) {
+    const a = acctById(id); if (!a) return;
+    const next = isLiability(a) ? "asset" : "liability";
+    const msg = next === "liability"
+      ? `把「${a.name}」改成負債帳戶？（餘額會以「欠多少」的方式呈現）`
+      : `把「${a.name}」改回資產帳戶？`;
+    if (!confirm(msg)) return;
+    try { await updateDoc(doc(db, "accounts", id), { kind: next }); }
+    catch (err) { alert("儲存失敗：" + err.message); }
+  }
+  window.__toggleKind = toggleKind;
 
   // favorites
   $("saveFavBtn").onclick = () => {
@@ -913,13 +1005,14 @@ function startApp() {
   }
 
   function renderTotal() {
+    const hasLiab = accounts.some(isLiability);
     if (balView === "twd") {
-      $("totalLabel").textContent = "總資產（折台幣）";
+      $("totalLabel").textContent = hasLiab ? "淨值（折台幣）" : "總資產（折台幣）";
       let total = 0;
       accounts.forEach(a => total += toTWD(accountBalance(a.id), a.currency));
       $("totalVal").textContent = fmtMoney(total, "TWD");
     } else {
-      $("totalLabel").textContent = "總資產（分幣別）";
+      $("totalLabel").textContent = hasLiab ? "淨值（分幣別）" : "總資產（分幣別）";
       const byCur = {};
       accounts.forEach(a => byCur[a.currency] = (byCur[a.currency] || 0) + accountBalance(a.id));
       const parts = Object.entries(byCur).map(([c, v]) => fmtMoney(v, c));
@@ -1051,39 +1144,131 @@ function startApp() {
   function renderAcctBalances() {
     const box = $("acctBalances");
     if (!accounts.length) { box.innerHTML = `<div class="empty">還沒有帳戶，去「設定」新增。</div>`; return; }
-    if (balView === "twd") {
-      let total = 0;
-      const cards = accounts.map(a => {
-        const bal = accountBalance(a.id); const twd = toTWD(bal, a.currency); total += twd;
-        return acctCard(a.name, a.currency, fmtMoney(twd, "TWD"), twd < 0);
-      }).join("");
-      box.innerHTML = `<div class="total-card"><span class="tlabel">合計（折台幣）</span><span class="tval">${fmtMoney(total, "TWD")}</span></div>` + cards;
-    } else {
-      box.innerHTML = accounts.map(a => {
-        const bal = accountBalance(a.id);
-        return acctCard(a.name, a.currency, fmtMoney(bal, a.currency), bal < 0);
-      }).join("");
-    }
+    const list = sortedAccounts();
+    const assets = list.filter(a => !isLiability(a));
+    const liabs  = list.filter(a => isLiability(a));
+
+    // totals in TWD (liability balances are negative internally)
+    let assetTWD = 0, liabTWD = 0;
+    assets.forEach(a => assetTWD += toTWD(accountBalance(a.id), a.currency));
+    liabs.forEach(a => liabTWD += Math.abs(toTWD(accountBalance(a.id), a.currency)));
+    const net = assetTWD - liabTWD;
+
+    const head = `
+      <div class="total-card"><span class="tlabel">淨值（折台幣）</span><span class="tval">${fmtMoney(net, "TWD")}</span></div>
+      <div class="net-card"><span class="nl">總資產</span><span class="nv">${fmtMoney(assetTWD, "TWD")}</span></div>
+      <div class="net-card"><span class="nl">總負債</span><span class="nv liab">${fmtMoney(liabTWD, "TWD")}</span></div>`;
+
+    const card = a => {
+      const bal = accountBalance(a.id);
+      const shown = displayBal(a, balView === "twd" ? toTWD(bal, a.currency) : bal);
+      const cur = balView === "twd" ? "TWD" : a.currency;
+      return acctCard(a, cur, fmtMoney(shown, cur));
+    };
+
+    const assetHtml = assets.length ? `<div class="sec-label">資產</div>` + assets.map(card).join("") : "";
+    const liabHtml  = liabs.length  ? `<div class="sec-label">負債（尚欠）</div>` + liabs.map(card).join("") : "";
+    box.innerHTML = (balView === "twd" ? head : "") + assetHtml + liabHtml;
   }
-  function acctCard(name, cur, valTxt, neg) {
-    return `<div class="acct-card">
-      <span><span class="aname">${escapeHtml(name)}</span><span class="acur">${cur}</span></span>
-      <span class="abal ${neg ? "neg" : ""}">${valTxt}</span>
+  function acctCard(a, cur, valTxt) {
+    const liab = isLiability(a);
+    return `<div class="acct-card ${liab ? "liab" : ""}">
+      <span><span class="aname">${escapeHtml(a.name)}</span><span class="acur">${cur}</span>${liab ? '<span class="kind-tag liab">負債</span>' : ""}</span>
+      <span class="abal">${valTxt}</span>
     </div>`;
   }
 
   function renderAcctList() {
     const box = $("acctList");
-    if (!accounts.length) { box.innerHTML = `<p style="font-size:13px;color:var(--muted)">還沒有帳戶。</p>`; return; }
-    box.innerHTML = accounts.map(a => `
-      <div class="acct-line">
-        <span class="n">${escapeHtml(a.name)}<span class="rsub"> · 初始 ${fmtMoney(a.opening||0, a.currency)}</span></span>
+    const hint = $("sortHint");
+    if (!accounts.length) {
+      box.innerHTML = `<p style="font-size:13px;color:var(--muted)">還沒有帳戶。</p>`;
+      if (hint) hint.textContent = "";
+      return;
+    }
+    const custom = (settings.sortMode || "created") === "custom";
+    if (hint) hint.textContent = custom
+      ? "拖曳左側的 ⠿ 可調整順序，手機可用上下箭頭。順序會套用到帳戶頁、總覽和記帳的下拉選單。"
+      : "選「自訂順序」才能手動排列。目前依所選規則自動排序。";
+
+    const list = sortedAccounts();
+    box.innerHTML = list.map((a, i) => `
+      <div class="acct-line ${custom ? "draggable" : ""}" data-id="${a.id}" ${custom ? 'draggable="true"' : ""}>
+        ${custom ? '<span class="drag-handle" title="拖曳排序">⠿</span>' : ""}
+        <span class="n">${escapeHtml(a.name)}${isLiability(a)?'<span class="kind-tag liab">負債</span>':""}<span class="rsub"> · 初始 ${fmtMoney(Math.abs(a.opening||0), a.currency)}${isLiability(a)?"（欠）":""}</span></span>
         <span class="c">${a.currency}</span>
-        <button title="初始餘額" onclick="__editOpening('${a.id}')">＄</button>
-        <button title="改名" onclick="__renameAccount('${a.id}')">✎</button>
-        <button title="刪除" onclick="__removeAccount('${a.id}')">×</button>
+        ${custom ? `<span class="move-btns">
+          <button draggable="false" title="上移" onclick="__moveAcct('${a.id}',-1)" ${i===0?"disabled style=opacity:.3":""}>▲</button>
+          <button draggable="false" title="下移" onclick="__moveAcct('${a.id}',1)" ${i===list.length-1?"disabled style=opacity:.3":""}>▼</button>
+        </span>` : ""}
+        <button draggable="false" title="資產／負債" onclick="__toggleKind('${a.id}')">⇄</button>
+        <button draggable="false" title="初始餘額" onclick="__editOpening('${a.id}')">＄</button>
+        <button draggable="false" title="改名" onclick="__renameAccount('${a.id}')">✎</button>
+        <button draggable="false" title="刪除" onclick="__removeAccount('${a.id}')">×</button>
       </div>`).join("");
+
+    if (custom) attachDragHandlers(box);
   }
+
+  // current display order as an array of ids
+  function currentOrderIds() { return sortedAccounts().map(a => a.id); }
+
+  function moveAcct(id, delta) {
+    const order = currentOrderIds();
+    const i = order.indexOf(id);
+    const j = i + delta;
+    if (i < 0 || j < 0 || j >= order.length) return;
+    order.splice(j, 0, order.splice(i, 1)[0]);
+    saveSettings({ acctOrder: order, sortMode: "custom" });
+  }
+  window.__moveAcct = moveAcct;
+
+  let dragSrcId = null;
+  function attachDragHandlers(box) {
+    // don't let a press on a button begin a row drag
+    box.querySelectorAll(".acct-line button").forEach(b => {
+      b.addEventListener("mousedown", e => e.stopPropagation());
+      b.addEventListener("dragstart", e => { e.preventDefault(); e.stopPropagation(); });
+    });
+    box.querySelectorAll(".acct-line.draggable").forEach(row => {
+      row.addEventListener("dragstart", e => {
+        if (e.target.tagName === "BUTTON") { e.preventDefault(); return; }
+        dragSrcId = row.dataset.id;
+        row.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+        try { e.dataTransfer.setData("text/plain", dragSrcId); } catch (_) {}
+      });
+      row.addEventListener("dragend", () => {
+        row.classList.remove("dragging");
+        box.querySelectorAll(".acct-line").forEach(r => r.classList.remove("dragover"));
+        dragSrcId = null;
+      });
+      row.addEventListener("dragover", e => {
+        e.preventDefault();
+        if (row.dataset.id !== dragSrcId) row.classList.add("dragover");
+      });
+      row.addEventListener("dragleave", () => row.classList.remove("dragover"));
+      row.addEventListener("drop", e => {
+        e.preventDefault();
+        row.classList.remove("dragover");
+        const targetId = row.dataset.id;
+        if (!dragSrcId || dragSrcId === targetId) return;
+        const order = currentOrderIds();
+        const from = order.indexOf(dragSrcId), to = order.indexOf(targetId);
+        if (from < 0 || to < 0) return;
+        order.splice(to, 0, order.splice(from, 1)[0]);
+        saveSettings({ acctOrder: order, sortMode: "custom" });
+      });
+    });
+  }
+
+  $("sortMode").onchange = e => {
+    const mode = e.target.value;
+    // switching to custom: seed the order from what's currently shown
+    const patch = { sortMode: mode };
+    if (mode === "custom" && !(settings.acctOrder || []).length) patch.acctOrder = currentOrderIds();
+    saveSettings(patch);
+  };
 
   function renderCatChips() {
     ["expense","income"].forEach(type => {
@@ -1302,8 +1487,13 @@ function startApp() {
     $("ovGreet").textContent = name ? `${greet}，${name}` : greet;
 
     // totals
-    let totalTWD = 0;
-    accounts.forEach(a => totalTWD += toTWD(accountBalance(a.id), a.currency));
+    let totalTWD = 0, assetTWD = 0, liabTWD = 0;
+    accounts.forEach(a => {
+      const twd = toTWD(accountBalance(a.id), a.currency);
+      totalTWD += twd;
+      if (isLiability(a)) liabTWD += Math.abs(twd); else assetTWD += twd;
+    });
+    const hasLiab = accounts.some(isLiability);
 
     // this month vs last month (expense, TWD)
     const now = new Date();
@@ -1335,7 +1525,7 @@ function startApp() {
     const totalDays = daySet.size;
 
     $("ovGrid").innerHTML = `
-      <div class="ov-cell"><div class="l">總資產（折台幣）</div><div class="v">${fmtMoney(totalTWD, "TWD")}</div></div>
+      <div class="ov-cell"><div class="l">${hasLiab ? "淨值（折台幣）" : "總資產（折台幣）"}</div><div class="v ${totalTWD<0?"neg":""}">${fmtMoney(totalTWD, "TWD")}</div>${hasLiab?`<div class="sub">資產 ${fmtMoney(assetTWD,"TWD")} · 負債 ${fmtMoney(liabTWD,"TWD")}</div>`:""}</div>
       <div class="ov-cell"><div class="l">本月結餘</div><div class="v ${netThis>=0?"pos":"neg"}">${fmtMoney(netThis, "TWD")}</div><div class="sub">收入 ${fmtMoney(incThis,"TWD")} · 支出 ${fmtMoney(expThis,"TWD")}</div></div>
       <div class="ov-cell"><div class="l">本月支出</div><div class="v">${fmtMoney(expThis, "TWD")}</div><div class="sub">${expLast? (diff<=0? "比上月少 "+fmtMoney(-diff,"TWD") : "比上月多 "+fmtMoney(diff,"TWD")) : "上月無資料"}</div></div>
       <div class="ov-cell"><div class="l">記帳天數</div><div class="v">${totalDays}</div><div class="sub">連續 ${streak} 天</div></div>`;
@@ -1344,27 +1534,105 @@ function startApp() {
 
     // accounts snapshot
     $("ovAccounts").innerHTML = accounts.length
-      ? accounts.map(a => {
+      ? sortedAccounts().map(a => {
           const bal = accountBalance(a.id);
-          return `<div class="acct-card"><span><span class="aname">${escapeHtml(a.name)}</span><span class="acur">${a.currency}</span></span><span class="abal ${bal<0?"neg":""}">${fmtMoney(bal, a.currency)}</span></div>`;
+          return acctCard(a, a.currency, fmtMoney(displayBal(a, bal), a.currency));
         }).join("")
       : `<div class="empty">還沒有帳戶，去「設定」新增。</div>`;
 
     // warm message by situation
-    $("ovMsg").textContent = encouragement({ netThis, diff, expLast, streak, totalDays, incThis, expThis });
+    $("ovMsg").textContent = encouragement({ netThis, diff, expLast, streak, totalDays, incThis, expThis, liabTWD, assetTWD, hasLiab });
+  }
+
+  // pick deterministically per day, so the line changes daily but not on every render
+  function pickOfDay(arr, salt = 0) {
+    if (!arr.length) return "";
+    const d = new Date();
+    const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate() + salt * 7;
+    return arr[seed % arr.length];
   }
 
   function encouragement(x) {
-    const msgs = [];
-    if (x.totalDays === 0) return "還沒有任何記錄，先從今天的一杯咖啡、一趟車錢開始吧。記帳這件事，起頭最難，你已經打開它了。";
-    if (x.streak >= 7) msgs.push(`連續記帳 ${x.streak} 天了，這份細心在異鄉特別難得，繼續保持。`);
-    else if (x.streak >= 3) msgs.push(`已經連著記了 ${x.streak} 天，習慣正在長出來，別小看這股慣性。`);
-    if (x.expLast > 0 && x.diff < 0) msgs.push(`這個月比上個月省下了 ${fmtMoney(-x.diff, "TWD")}，你把錢花在更要緊的地方了。`);
-    else if (x.expLast > 0 && x.diff > 0) msgs.push("這個月花得比上個月多一些，不必焦慮，看清楚錢的去向，本身就是一種掌控。");
-    if (x.netThis > 0) msgs.push(`本月還有結餘 ${fmtMoney(x.netThis, "TWD")}，一點一點累積，回家時會是一筆踏實的底氣。`);
-    else if (x.netThis < 0) msgs.push("這個月支出多過收入，有時是必要的投入。記下來，下個月會更清楚該怎麼調整。");
-    if (!msgs.length) msgs.push("穩穩地記，穩穩地過。你在照顧自己的生活，這件事值得肯定。");
-    return msgs.join("　");
+    const M = fmtMoney;
+    if (x.totalDays === 0) {
+      return pickOfDay([
+        "還沒有任何記錄。先從今天的一杯咖啡、一趟車錢開始吧，起頭最難，而你已經打開它了。",
+        "空空的帳本也是一種開始。今天花的第一筆，就記下來看看。",
+        "記帳不必從完美開始，只要從今天開始。"
+      ]);
+    }
+
+    const parts = [];
+
+    // streak
+    if (x.streak >= 30) parts.push(pickOfDay([
+      `連續記帳 ${x.streak} 天。這已經不是毅力了，是你生活的一部分。`,
+      `${x.streak} 天不間斷。你對自己的日子，是真的上心。`
+    ], 1));
+    else if (x.streak >= 14) parts.push(pickOfDay([
+      `連著記了 ${x.streak} 天，兩個禮拜了。這種穩定，比任何一次大改變都可靠。`,
+      `${x.streak} 天了。習慣一旦長成，往後就不太需要用力。`
+    ], 1));
+    else if (x.streak >= 7) parts.push(pickOfDay([
+      `連續記帳 ${x.streak} 天了，這份細心在異鄉特別難得。`,
+      `整整 ${x.streak} 天。你比自己以為的更有定性。`,
+      `${x.streak} 天沒斷過，這股慣性會替你撐住接下來的日子。`
+    ], 1));
+    else if (x.streak >= 3) parts.push(pickOfDay([
+      `已經連著記了 ${x.streak} 天，習慣正在長出來。`,
+      `${x.streak} 天。別小看這股慣性，它正在成形。`
+    ], 1));
+    else if (x.streak === 0) parts.push(pickOfDay([
+      "有幾天沒記了，沒關係。今天補上就好，帳本不會怪你。",
+      "斷了就從今天接回來，記帳從來不是考試。"
+    ], 1));
+
+    // month over month
+    if (x.expLast > 0 && x.diff < 0) parts.push(pickOfDay([
+      `這個月比上個月省下了 ${M(-x.diff, "TWD")}，你把錢花在更要緊的地方了。`,
+      `支出比上月少了 ${M(-x.diff, "TWD")}。克制不是委屈自己，是替未來留餘地。`,
+      `比上個月省了 ${M(-x.diff, "TWD")}，這種小小的收斂，日子久了很有份量。`
+    ], 2));
+    else if (x.expLast > 0 && x.diff > 0) parts.push(pickOfDay([
+      "這個月花得比上個月多一些。不必焦慮，看清楚錢的去向，本身就是一種掌控。",
+      `支出多了 ${M(x.diff, "TWD")}。有些月份本來就該多花一點，記下來就好。`,
+      "花得多了些，但你知道花在哪裡——這比省下多少更重要。"
+    ], 2));
+
+    // this month net
+    if (x.netThis > 0) parts.push(pickOfDay([
+      `本月結餘 ${M(x.netThis, "TWD")}，一點一點累積，回家時會是一筆踏實的底氣。`,
+      `這個月存下了 ${M(x.netThis, "TWD")}。異鄉的每一塊錢，都是你自己掙來的。`,
+      `結餘 ${M(x.netThis, "TWD")}。不必比較快慢，往前就好。`
+    ], 3));
+    else if (x.netThis < 0) parts.push(pickOfDay([
+      "這個月支出多過收入，有時是必要的投入。記下來，下個月會更清楚該怎麼調整。",
+      "收支暫時是負的。別急著責怪自己，先看看錢去了哪裡。",
+      "這個月透支了些。生活本來就有高低，帳本的用處是讓你看得見。"
+    ], 3));
+
+    // liabilities
+    if (x.hasLiab && x.liabTWD > 0) {
+      const covered = x.assetTWD >= x.liabTWD;
+      parts.push(covered
+        ? pickOfDay([
+            `還欠 ${M(x.liabTWD, "TWD")}，但你的資產已經蓋得過它了。穩住就好。`,
+            `負債 ${M(x.liabTWD, "TWD")} 還在，不過你手上的錢撐得住，不用慌。`
+          ], 4)
+        : pickOfDay([
+            `目前還欠 ${M(x.liabTWD, "TWD")}。慢慢還，數字會往下走的。`,
+            `負債 ${M(x.liabTWD, "TWD")}。看著它一點點變小，也是一種踏實。`,
+            `欠的還沒還完，但你正在面對它。這件事本身就不容易。`
+          ], 4));
+    }
+
+    if (!parts.length) parts.push(pickOfDay([
+      "穩穩地記，穩穩地過。你在照顧自己的生活，這件事值得肯定。",
+      "今天也記了帳。這樣就很好。",
+      "數字之外，你也在整理自己的日子。"
+    ], 5));
+
+    return parts.join("　");
   }
 
   function escapeHtml(s) {
