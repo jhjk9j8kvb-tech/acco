@@ -194,6 +194,9 @@
   .auto-tag { font-size: 10px; background: var(--accent); color: #fff; border-radius: 10px; padding: 1px 6px; margin-left: 6px; }
 
   .version { text-align: center; font-size: 12px; color: var(--muted); letter-spacing: 1px; padding: 8px 0 20px; }
+  .changelog .cl { font-size: 12.5px; color: var(--ink); padding: 6px 0; border-bottom: 1px solid var(--line); line-height: 1.5; }
+  .changelog .cl:last-child { border-bottom: none; }
+  .changelog .clv { display: inline-block; background: var(--accent); color: #fff; border-radius: 10px; padding: 1px 8px; font-size: 11px; margin-right: 8px; font-variant-numeric: tabular-nums; }
 
   /* trend monthly net bars */
   .mrow-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
@@ -306,8 +309,8 @@
         <div class="form-row">
           <div class="toggle">
             <button type="button" id="tExp" class="active exp" data-type="expense">支出</button>
-            <button type="button" id="tInc" data-type="income">收入</button>
-            <button type="button" id="tTra" data-type="transfer">轉帳</button>
+            <button type="button" id="tInc" class="inc" data-type="income">收入</button>
+            <button type="button" id="tTra" class="tra" data-type="transfer">轉帳</button>
           </div>
           <input type="date" id="date" required>
           <input type="time" id="time" style="flex:1;min-width:90px;padding:9px 10px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:inherit;background:var(--paper);">
@@ -500,7 +503,21 @@
         <div id="favList"></div>
       </div>
 
-      <p class="version">記帳本　v1.0</p>
+      <div class="set-block">
+        <h3>版本與更新記錄</h3>
+        <p style="font-size:13px;margin-bottom:10px;">目前版本：<strong>v1.5</strong>（2026-07-11）</p>
+        <div class="changelog">
+          <div class="cl"><span class="clv">v1.5</span>修正收入／轉帳按鈕沒有反白的問題；歐元刷卡記錄現在可用原幣編輯；新增本更新記錄。</div>
+          <div class="cl"><span class="clv">v1.4</span>記帳可用歐元輸入、自動依匯率加國外刷卡手續費換算成台幣；可設定手續費。</div>
+          <div class="cl"><span class="clv">v1.3</span>每筆記帳可記錄時間（到分鐘）；趨勢頁擴充六個月摘要、每月結餘、分類走勢。</div>
+          <div class="cl"><span class="clv">v1.2</span>帳戶分資產／負債，總覽顯示淨值；總覽借款提醒橫幅；勉勵語大幅擴充。</div>
+          <div class="cl"><span class="clv">v1.1</span>帳戶可自訂排序（拖曳或依餘額）；帳戶初始餘額。</div>
+          <div class="cl"><span class="clv">v1.0</span>多帳戶、多幣別、轉帳、預算、固定支出、常用記錄、自訂分類、CSV 匯出入、趨勢圖。</div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;">之後可能再加：跨月搜尋、匯率快速換算小工具、帳單對帳標記。</p>
+      </div>
+
+      <p class="version">記帳本　v1.5</p>
     </section>
   </main>
 </div>
@@ -517,7 +534,14 @@
       <label>帳戶</label>
       <select id="eAccount"></select>
       <label>金額</label>
-      <input type="number" id="eAmount" step="0.01" min="0">
+      <div class="mrow">
+        <input type="number" id="eAmount" step="0.01" min="0" style="flex:2;">
+        <select id="eInputCur" style="flex:0 0 auto;min-width:70px;">
+          <option value="TWD">NT$</option>
+          <option value="EUR">€</option>
+        </select>
+      </div>
+      <div class="fx-preview" id="eFxPreview"></div>
       <label>分類</label>
       <select id="eCategory"></select>
       <label>備註</label>
@@ -897,13 +921,46 @@ function startApp() {
       $("eDate").value = e.date;
       $("eTime").value = e.time || "";
       $("eAccount").value = e.accountId;
-      $("eAmount").value = e.amount;
+      // if this entry was entered in a foreign currency, edit in that currency
+      if (e.origCur && e.origAmt != null) {
+        $("eAmount").value = e.origAmt;
+        $("eInputCur").value = e.origCur;
+      } else {
+        const a = acctById(e.accountId);
+        $("eAmount").value = e.amount;
+        $("eInputCur").value = a ? a.currency : "TWD";
+      }
       fillCategories($("eCategory"), e.type, e.category);
-      $("eNote").value = e.note || "";
+      // strip any auto fx tag from the note so the user sees only their own note
+      $("eNote").value = stripFxTag(e.note || "");
+      updateEditFxPreview();
     }
     $("editModal").classList.add("show");
   }
   window.__openEdit = openEdit;
+
+  function stripFxTag(note) {
+    // remove a trailing "（€25 @36 +1.5%）" or standalone "€25 @36 ..." tag we added
+    return note
+      .replace(/（[€NT$][^）]*@[^）]*）\s*$/,"")
+      .replace(/^[€NT$][^（）]*@[^（）]*$/,"")
+      .trim();
+  }
+
+  function updateEditFxPreview() {
+    const box = $("eFxPreview"); if (!box) return;
+    const e = entries.find(x => x.id === editingId);
+    const a = acctById($("eAccount").value);
+    const raw = Number($("eAmount").value);
+    const inCur = $("eInputCur").value;
+    if (!a || !(raw > 0) || inCur === a.currency) { box.textContent = ""; return; }
+    const { amount, fx } = convertToAccount(raw, inCur, a.currency);
+    if (!fx) { box.textContent = ""; return; }
+    box.textContent = `≈ ${fmtMoney(amount, a.currency)}　（${fx.note}）`;
+  }
+  $("eAmount").addEventListener("input", updateEditFxPreview);
+  $("eInputCur").addEventListener("change", updateEditFxPreview);
+  $("eAccount").addEventListener("change", updateEditFxPreview);
   $("editCancel").onclick = () => { $("editModal").classList.remove("show"); editingId = null; };
   $("editModal").onclick = ev => { if (ev.target.id === "editModal") { $("editModal").classList.remove("show"); editingId = null; } };
 
@@ -922,12 +979,25 @@ function startApp() {
           fromAmt: fA, toAmt: tA, note: $("etNote").value.trim()
         });
       } else {
-        const amt = Number($("eAmount").value);
-        if (!(amt > 0)) { alert("金額要大於 0"); return; }
-        await updateDoc(doc(db, "entries", editingId), {
+        const raw = Number($("eAmount").value);
+        if (!(raw > 0)) { alert("金額要大於 0"); return; }
+        const acct = acctById($("eAccount").value);
+        const inCur = $("eInputCur").value;
+        const conv = convertToAccount(raw, inCur, acct ? acct.currency : "TWD");
+        let note = stripFxTag($("eNote").value.trim());
+        if (conv.fx) note = note ? `${note}（${conv.fx.note}）` : conv.fx.note;
+        const patch = {
           date: $("eDate").value, time: $("eTime").value || "", accountId: $("eAccount").value,
-          amount: amt, category: $("eCategory").value, note: $("eNote").value.trim()
-        });
+          amount: conv.amount, category: $("eCategory").value, note
+        };
+        if (conv.fx) {
+          patch.origAmt = conv.fx.origAmt; patch.origCur = conv.fx.origCur;
+          patch.fxRate = conv.fx.rate; patch.fxFee = conv.fx.fee;
+        } else {
+          // no longer a foreign-currency entry: clear stale fx fields
+          patch.origAmt = null; patch.origCur = null; patch.fxRate = null; patch.fxFee = null;
+        }
+        await updateDoc(doc(db, "entries", editingId), patch);
       }
       $("editModal").classList.remove("show"); editingId = null;
     } catch (err) { alert("儲存失敗：" + err.message); }
